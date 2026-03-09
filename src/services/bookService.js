@@ -1,4 +1,6 @@
 import pool from "../config/connectDB.js";
+const fs = require("fs");
+const path = require("path");
 
 const getAllBooks = async (
   limit,
@@ -9,7 +11,7 @@ const getAllBooks = async (
   categoryId,
   subcategoryId
 ) => {
-  let whereClause = "WHERE 1=1";
+  let whereClause = "WHERE b.is_hidden = 0";
   const values = [];
 
   if (search) {
@@ -70,15 +72,31 @@ const getAllBooks = async (
   const [rows] = await pool.query(
     `SELECT 
         b.*, 
+        bd.barcode,
+        bd.supplier_name,
+        bd.authors,
+        bd.publisher,
+        bd.published_year,
+        bd.language,
+        bd.weight_gram,
+        bd.dimensions,
+        bd.page_count,
+        bd.cover_type,
+  
         i.image_url AS main_image, 
         c.name AS category_name,
         sc.name AS subcategory_name
+  
      FROM books b
+  
+     LEFT JOIN book_details bd ON b.id = bd.book_id
      LEFT JOIN book_images i ON b.id = i.book_id AND i.is_main = 1
      LEFT JOIN categories c ON b.category_id = c.id
      LEFT JOIN subcategories sc ON b.subcategory_id = sc.id
+  
      ${whereClause}
      ${sortClause}
+  
      LIMIT ? OFFSET ?`,
     [...values, Number(limit), Number(offset)]
   );
@@ -87,6 +105,30 @@ const getAllBooks = async (
     `SELECT COUNT(*) as total FROM books b ${whereClause}`,
     values
   );
+
+  const bookIds = rows.map((row) => row.id);
+
+  let imagesMap = {};
+
+  if (bookIds.length > 0) {
+    const [imageRows] = await pool.query(
+      `SELECT id, book_id, image_url
+     FROM book_images
+     WHERE book_id IN (?) AND is_main = 0`,
+      [bookIds]
+    );
+
+    imageRows.forEach((img) => {
+      if (!imagesMap[img.book_id]) {
+        imagesMap[img.book_id] = [];
+      }
+
+      imagesMap[img.book_id].push({
+        id: img.id,
+        image_url: img.image_url,
+      });
+    });
+  }
 
   const books = rows.map((row) => ({
     id: row.id,
@@ -98,6 +140,8 @@ const getAllBooks = async (
     quantity: row.quantity,
     sold: row.sold,
 
+    images: imagesMap[row.id] || [],
+
     category: {
       id: row.category_id,
       name: row.category_name,
@@ -106,6 +150,19 @@ const getAllBooks = async (
     subcategory: {
       id: row.subcategory_id,
       name: row.subcategory_name,
+    },
+
+    book_detail: {
+      barcode: row.barcode,
+      supplier_name: row.supplier_name,
+      authors: row.authors,
+      publisher: row.publisher,
+      published_year: row.published_year,
+      language: row.language,
+      weight_gram: row.weight_gram,
+      dimensions: row.dimensions,
+      page_count: row.page_count,
+      cover_type: row.cover_type,
     },
   }));
 
@@ -144,32 +201,198 @@ const getBookById = async (id) => {
 };
 
 // Thêm sách mới
-const createBook = async (bookData) => {
-  const { name, category, shortdescription, longdescription, price, size } =
-    bookData;
+const createBook = async (bookData, mainImage, subImages) => {
+  const {
+    name,
+    category_id,
+    subcategory_id,
+    price,
+    discount,
+    description,
+    barcode,
+    supplier_name,
+    authors,
+    publisher,
+    published_year,
+    language,
+    weight_gram,
+    dimensions,
+    page_count,
+    cover_type,
+  } = bookData;
 
+  // 1️⃣ Insert books
   const [result] = await pool.query(
-    `INSERT INTO books (name, category, shortdescription, longdescription, price, size)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [name, category, shortdescription, longdescription, price, size]
+    `INSERT INTO books
+    (name, category_id, subcategory_id, price, discount, description)
+    VALUES (?, ?, ?, ?, ?, ?)`,
+    [name, category_id, subcategory_id, price, discount, description]
   );
 
-  // Trả lại sách vừa tạo
-  const insertedId = result.insertId;
-  return await getBookById(insertedId);
+  const bookId = result.insertId;
+
+  // 2️⃣ Insert book details
+  await pool.query(
+    `INSERT INTO book_details
+    (book_id, barcode, supplier_name, authors, publisher, published_year, language, weight_gram, dimensions, page_count, cover_type)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      bookId,
+      barcode,
+      supplier_name,
+      authors,
+      publisher,
+      published_year,
+      language,
+      weight_gram,
+      dimensions,
+      page_count,
+      cover_type,
+    ]
+  );
+
+  // 3️⃣ Insert main image
+  if (mainImage) {
+    await pool.query(
+      `INSERT INTO book_images (book_id, image_url, is_main)
+       VALUES (?, ?, 1)`,
+      [bookId, mainImage.filename]
+    );
+  }
+
+  // 4️⃣ Insert sub images
+  if (subImages.length > 0) {
+    const values = subImages.map((img) => [bookId, img.filename, 0]);
+
+    await pool.query(
+      `INSERT INTO book_images (book_id, image_url, is_main)
+       VALUES ?`,
+      [values]
+    );
+  }
+
+  return {
+    bookId,
+  };
 };
 
 // Cập nhật sách
-const updateBook = async (id, updateData) => {
-  const { name, category, shortdescription, longdescription, price, size } =
-    updateData;
 
+const updateBook = async (id, updateData, mainImage, subImages, oldImages) => {
+  const {
+    name,
+    category_id,
+    subcategory_id,
+    price,
+    discount,
+    description,
+    barcode,
+    supplier_name,
+    authors,
+    publisher,
+    published_year,
+    language,
+    weight_gram,
+    dimensions,
+    page_count,
+    cover_type,
+  } = updateData;
+
+  // 1️⃣ update books
   await pool.query(
-    `UPDATE books SET name = ?, category = ?, shortdescription = ?, longdescription = ?, price = ?, size = ? WHERE id = ?`,
-    [name, category, shortdescription, longdescription, price, size, id]
+    `UPDATE books 
+     SET name=?, category_id=?, subcategory_id=?, price=?, discount=?, description=?
+     WHERE id=?`,
+    [name, category_id, subcategory_id, price, discount, description, id]
   );
 
-  return await getBookById(id);
+  // 2️⃣ update book_details
+  await pool.query(
+    `UPDATE book_details
+     SET barcode=?, supplier_name=?, authors=?, publisher=?, 
+     published_year=?, language=?, weight_gram=?, dimensions=?, 
+     page_count=?, cover_type=?
+     WHERE book_id=?`,
+    [
+      barcode,
+      supplier_name,
+      authors,
+      publisher,
+      published_year,
+      language,
+      weight_gram,
+      dimensions,
+      page_count,
+      cover_type,
+      id,
+    ]
+  );
+
+  // 3️⃣ xử lý main image
+  if (mainImage) {
+    const [oldMain] = await pool.query(
+      `SELECT image_url FROM book_images WHERE book_id=? AND is_main=1`,
+      [id]
+    );
+
+    if (oldMain.length) {
+      const filePath = path.join("uploads", oldMain[0].image_url);
+
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+
+      await pool.query(
+        `DELETE FROM book_images WHERE book_id=? AND is_main=1`,
+        [id]
+      );
+    }
+
+    await pool.query(
+      `INSERT INTO book_images (book_id,image_url,is_main)
+       VALUES (?,?,1)`,
+      [id, mainImage.filename]
+    );
+  }
+
+  // 4️⃣ xử lý subImages
+
+  const keepImageIds = oldImages ? JSON.parse(oldImages) : [];
+
+  // lấy ảnh hiện tại trong DB
+  const [dbImages] = await pool.query(
+    `SELECT id,image_url FROM book_images 
+   WHERE book_id=? AND is_main=0`,
+    [id]
+  );
+
+  // xoá ảnh không còn giữ
+  for (const img of dbImages) {
+    if (!keepImageIds.includes(img.id)) {
+      const filePath = path.join("uploads", img.image_url);
+
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+
+      await pool.query(`DELETE FROM book_images WHERE id=?`, [img.id]);
+    }
+  }
+
+  // thêm ảnh mới
+  if (subImages && subImages.length > 0) {
+    const values = subImages.map((file) => [id, file.filename, 0]);
+
+    await pool.query(
+      `INSERT INTO book_images (book_id,image_url,is_main)
+     VALUES ?`,
+      [values]
+    );
+  }
+
+  return {
+    message: "Update book success",
+  };
 };
 
 // Xóa sách
@@ -177,8 +400,11 @@ const deleteBook = async (id) => {
   const book = await getBookById(id);
   if (!book) return null;
 
-  await pool.query("DELETE FROM books WHERE id = ?", [id]);
-  return book;
+  await pool.query("UPDATE books SET is_hidden = 1 WHERE id = ?", [id]);
+
+  return {
+    message: "Delete book success",
+  };
 };
 
 export default {

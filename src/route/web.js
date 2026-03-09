@@ -21,9 +21,24 @@ const initWebRoutes = (app) => {
 
   router.get("/api/books", bookController.getAllBooks);
   router.get("/api/book/:id", bookController.getBookById);
-  router.post("/api/book", bookController.createBook);
-  router.put("/api/book/:id", bookController.updateBook);
+  router.post(
+    "/api/book",
+    upload.fields([
+      { name: "mainImage", maxCount: 1 },
+      { name: "subImages", maxCount: 99 },
+    ]),
+    bookController.createBook
+  );
+  router.put(
+    "/api/book",
+    upload.fields([
+      { name: "mainImage", maxCount: 1 },
+      { name: "subImages", maxCount: 99 },
+    ]),
+    bookController.updateBook
+  );
   router.delete("/api/book/:id", bookController.deleteBook);
+
   router.get("/api/menu", categoryController.getCategoriesWithSub);
 
   router.get("/api/users", userController.getAllUsers);

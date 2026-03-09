@@ -3,7 +3,7 @@ import bookService from "../services/bookService.js";
 const getAllBooks = async (req, res) => {
   const {
     page = 1,
-    limit = 6,
+    limit = 10,
     sort = "",
     search = "",
     prices = [],
@@ -53,16 +53,42 @@ const getBookById = async (req, res) => {
 };
 
 const createBook = async (req, res) => {
-  const bookData = req.body;
-  const result = await bookService.createBook(bookData);
-  return res.status(201).json(result);
-};
+  try {
+    const bookData = req.body;
 
+    const mainImage = req.files["mainImage"]?.[0] || null;
+    const subImages = req.files["subImages"] || [];
+
+    const result = await bookService.createBook(bookData, mainImage, subImages);
+
+    return res.status(201).json(result);
+  } catch (error) {
+    console.error("Create book error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
 const updateBook = async (req, res) => {
-  const id = req.params.id;
-  const updateData = req.body;
-  const result = await bookService.updateBook(id, updateData);
-  return res.status(200).json(result);
+  try {
+    const updateData = req.body;
+    const id = updateData.id;
+
+    const mainImage = req.files["mainImage"]?.[0] || null;
+    const subImages = req.files["subImages"] || [];
+    const oldImages = req.body.oldImages || "[]";
+
+    const result = await bookService.updateBook(
+      id,
+      updateData,
+      mainImage,
+      subImages,
+      oldImages
+    );
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Update book error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
 };
 
 const deleteBook = async (req, res) => {
