@@ -80,7 +80,7 @@ const createBlog = async (req, res) => {
 const updateBlog = async (req, res) => {
   try {
     const blogId = req.params.id;
-    const { title, content, author } = req.body;
+    const { title, content, author, description, is_featured } = req.body;
     const image = req.file ? req.file.filename : null;
 
     const updated = await blogService.updateBlog(blogId, {
@@ -88,6 +88,8 @@ const updateBlog = async (req, res) => {
       content,
       author,
       image,
+      is_featured,
+      description,
     });
     res.status(200).json({ message: "Cập nhật thành công", data: updated });
   } catch (err) {
