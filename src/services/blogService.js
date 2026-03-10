@@ -40,18 +40,27 @@ const createBlog = async (data) => {
 };
 
 // Cập nhật blog
-const updateBlog = async (id, data) => {
-  const { title, description, image, author, is_featured } = data;
+const updateBlog = async (data) => {
+  const { title, description, image, author, is_featured, id } = data;
 
-  await pool.query(
-    `UPDATE blogs SET title = ?, description = ?, image = ?, author = ?, is_featured = ?
-     WHERE id = ?`,
-    [title, description, image, author, is_featured, id]
-  );
+  if (image) {
+    await pool.query(
+      `UPDATE blogs 
+       SET title = ?, description = ?, image = ?, author = ?, is_featured = ?
+       WHERE id = ?`,
+      [title, description, image, author, is_featured, id]
+    );
+  } else {
+    await pool.query(
+      `UPDATE blogs 
+       SET title = ?, description = ?, author = ?, is_featured = ?
+       WHERE id = ?`,
+      [title, description, author, is_featured, id]
+    );
+  }
 
   return await getBlogById(id);
 };
-
 // Xóa blog
 const deleteBlog = async (id) => {
   const blog = await getBlogById(id);
