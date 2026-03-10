@@ -58,7 +58,7 @@ const getBlogById = async (req, res) => {
 
 const createBlog = async (req, res) => {
   try {
-    const { title, content, author } = req.body;
+    const { title, content, author, is_featured, description } = req.body;
     const image = req.file ? req.file.filename : null;
 
     const newBlog = await blogService.createBlog({
@@ -66,6 +66,8 @@ const createBlog = async (req, res) => {
       content,
       author,
       image,
+      is_featured,
+      description,
     });
 
     res.status(201).json({ message: "Tạo blog thành công", data: newBlog });
