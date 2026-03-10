@@ -2,10 +2,13 @@ import pool from "../config/connectDB.js";
 
 const getAllBlogsPage = async (limit, offset) => {
   const [rows] = await pool.query(
-    "SELECT * FROM blogs ORDER BY date DESC LIMIT ? OFFSET ?",
+    "SELECT * FROM blogs WHERE is_hidden = 0 ORDER BY date DESC LIMIT ? OFFSET ?",
     [limit, offset]
   );
-  const [countRows] = await pool.query("SELECT COUNT(*) as total FROM blogs");
+
+  const [countRows] = await pool.query(
+    "SELECT COUNT(*) as total FROM blogs WHERE is_hidden = 0"
+  );
 
   return {
     blogs: rows,
@@ -66,7 +69,8 @@ const deleteBlog = async (id) => {
   const blog = await getBlogById(id);
   if (!blog) return null;
 
-  await pool.query("DELETE FROM blogs WHERE id = ?", [id]);
+  await pool.query("UPDATE blogs SET is_hidden = 1 WHERE id = ?", [id]);
+
   return blog;
 };
 
