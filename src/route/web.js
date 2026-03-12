@@ -143,6 +143,11 @@ const initWebRoutes = (app) => {
   router.post("/api/promotion", promotionController.createPromotion);
   router.put("/api/promotion", promotionController.updatePromotion);
   router.delete("/api/promotion/:id", promotionController.deletePromotion);
+  router.post(
+    "/api/promotion/import",
+    upload.single("file"),
+    promotionController.importPromotions
+  );
 
   router.post("/api/orders", authMiddleware, orderController.createOrder);
   router.get(

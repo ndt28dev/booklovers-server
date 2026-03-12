@@ -104,10 +104,33 @@ export const deletePromotion = async (req, res) => {
   }
 };
 
+export const importPromotions = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Vui lòng chọn file",
+      });
+    }
+
+    const result = await promotionService.importPromotions(req.file.path);
+
+    res.status(200).json({
+      message: "Import khuyến mãi thành công",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Import promotions error:", error);
+    res.status(500).json({
+      message: "Lỗi khi import khuyến mãi",
+    });
+  }
+};
+
 export default {
   getAllPromotions,
   applyPromotion,
   createPromotion,
   updatePromotion,
   deletePromotion,
+  importPromotions,
 };

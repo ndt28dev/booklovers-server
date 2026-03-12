@@ -1,4 +1,5 @@
 import pool from "../config/connectDB.js";
+import XLSX from "xlsx";
 
 const getAllPromotions = async (limit, offset, discount_type, search) => {
   let query = `SELECT * FROM promotion WHERE  is_hidden = 0`;
@@ -125,10 +126,64 @@ const deletePromotion = async (id) => {
   return result;
 };
 
+export const importPromotions = async (filePath) => {
+  const workbook = XLSX.readFile(filePath);
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+
+  const promotions = XLSX.utils.sheet_to_json(sheet);
+
+  const createdPromotions = [];
+  const skippedPromotions = [];
+
+  for (const item of promotions) {
+    // kiểm tra code tồn tại
+    const [existing] = await pool.query(
+      "SELECT id FROM promotion WHERE code = ?",
+      [item.code]
+    );
+
+    if (existing.length > 0) {
+      skippedPromotions.push({
+        code: item.code,
+        reason: "Code đã tồn tại",
+      });
+      continue;
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO promotion
+      (code, description, discount_type, discount_value, usage_limit, start_date, end_date, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        item.code,
+        item.description || "",
+        item.discount_type || "percent",
+        item.discount_value || 0,
+        item.usage_limit || 0,
+        item.start_date,
+        item.end_date,
+        item.is_active ?? 1,
+      ]
+    );
+
+    createdPromotions.push({
+      id: result.insertId,
+      code: item.code,
+    });
+  }
+
+  return {
+    created: createdPromotions,
+    skipped: skippedPromotions,
+  };
+};
+
 export default {
   getPromotionByCode,
   createPromotion,
   updatePromotion,
   deletePromotion,
   getAllPromotions,
+  importPromotions,
 };
