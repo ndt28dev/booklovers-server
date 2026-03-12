@@ -138,7 +138,11 @@ const initWebRoutes = (app) => {
     cartController.removeItemFromCart
   );
 
+  router.get("/api/promotions", promotionController.getAllPromotions);
   router.post("/api/promotion/apply", promotionController.applyPromotion);
+  router.post("/api/promotion", promotionController.createPromotion);
+  router.put("/api/promotion", promotionController.updatePromotion);
+  router.delete("/api/promotion/:id", promotionController.deletePromotion);
 
   router.post("/api/orders", authMiddleware, orderController.createOrder);
   router.get(

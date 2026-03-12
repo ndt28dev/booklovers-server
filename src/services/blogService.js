@@ -1,14 +1,38 @@
 import pool from "../config/connectDB.js";
 
-const getAllBlogsPage = async (limit, offset) => {
-  const [rows] = await pool.query(
-    "SELECT * FROM blogs WHERE is_hidden = 0 ORDER BY date DESC LIMIT ? OFFSET ?",
-    [limit, offset]
-  );
+const getAllBlogsPage = async (limit, offset, is_featured, search) => {
+  let query = `SELECT * FROM blogs WHERE is_hidden = 0`;
+  let countQuery = `SELECT COUNT(*) as total FROM blogs WHERE is_hidden = 0`;
 
-  const [countRows] = await pool.query(
-    "SELECT COUNT(*) as total FROM blogs WHERE is_hidden = 0"
-  );
+  const params = [];
+  const countParams = [];
+
+  // filter featured
+  if (is_featured !== undefined) {
+    query += ` AND is_featured = ?`;
+    countQuery += ` AND is_featured = ?`;
+
+    params.push(is_featured);
+    countParams.push(is_featured);
+  }
+
+  // search
+  if (search) {
+    query += ` AND (title LIKE ? OR description LIKE ?)`;
+    countQuery += ` AND (title LIKE ? OR description LIKE ?)`;
+
+    const keyword = `%${search}%`;
+
+    params.push(keyword, keyword);
+    countParams.push(keyword, keyword);
+  }
+
+  query += ` ORDER BY date DESC LIMIT ? OFFSET ?`;
+
+  params.push(limit, offset);
+
+  const [rows] = await pool.query(query, params);
+  const [countRows] = await pool.query(countQuery, countParams);
 
   return {
     blogs: rows,

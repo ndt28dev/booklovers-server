@@ -6,7 +6,19 @@ const getAllBlogsPage = async (req, res) => {
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
 
-    const result = await blogService.getAllBlogsPage(limit, offset);
+    const is_featured =
+      req.query.is_featured !== undefined
+        ? parseInt(req.query.is_featured)
+        : undefined;
+
+    const search = req.query.search || "";
+
+    const result = await blogService.getAllBlogsPage(
+      limit,
+      offset,
+      is_featured,
+      search
+    );
 
     res.status(200).json({
       status: "OK",
@@ -20,7 +32,10 @@ const getAllBlogsPage = async (req, res) => {
     });
   } catch (err) {
     console.error("Error getting blogs:", err);
-    res.status(500).json({ status: "ERROR", message: "Lỗi khi lấy blog" });
+    res.status(500).json({
+      status: "ERROR",
+      message: "Lỗi khi lấy blog",
+    });
   }
 };
 
