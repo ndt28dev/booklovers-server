@@ -8,11 +8,24 @@ const createContact = async ({ name, email, phone, message }) => {
   return result.insertId;
 };
 
-const getAllContacts = async () => {
-  const [rows] = await pool.query(
-    `SELECT * FROM contacts ORDER BY created_at DESC`
+const getAllContacts = async (page, limit) => {
+  const offset = (page - 1) * limit;
+
+  const [contacts] = await pool.query(
+    `SELECT * FROM contacts 
+     ORDER BY created_at DESC 
+     LIMIT ? OFFSET ?`,
+    [limit, offset]
   );
-  return rows;
+
+  const [totalRows] = await pool.query(
+    `SELECT COUNT(*) as total FROM contacts`
+  );
+
+  return {
+    contacts,
+    total: totalRows[0].total,
+  };
 };
 
 export default {

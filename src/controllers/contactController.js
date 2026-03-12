@@ -22,8 +22,21 @@ const createContact = async (req, res) => {
 
 const getAllContacts = async (req, res) => {
   try {
-    const contacts = await contactSercive.getAllContacts();
-    res.status(200).json({ status: "OK", data: contacts });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const result = await contactSercive.getAllContacts(page, limit);
+
+    res.status(200).json({
+      status: "OK",
+      data: result.contacts,
+      pagination: {
+        page,
+        limit,
+        total: result.total,
+        totalPages: Math.ceil(result.total / limit),
+      },
+    });
   } catch (err) {
     console.error("Lỗi khi lấy danh sách liên hệ:", err);
     res.status(500).json({ message: "Lỗi server khi lấy liên hệ" });
