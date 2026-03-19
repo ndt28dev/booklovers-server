@@ -13,6 +13,8 @@ import orderController from "../controllers/orderController";
 import categoryController from "../controllers/categoryController";
 import vnpayController from "../controllers/vnpayController";
 import statisticController from "../controllers/statisticController";
+import supplierController from "../controllers/supplierController";
+import importController from "../controllers/importController";
 
 const router = express.Router();
 
@@ -104,6 +106,15 @@ const initWebRoutes = (app) => {
   router.post("/api/contact", contactController.createContact);
   router.get("/api/contacts", contactController.getAllContacts);
   router.put("/api/contact/:id/status", contactController.updateContactStatus);
+
+  // suppliers
+  router.post("/api/suppliers", supplierController.createSupplier);
+  router.get("/api/suppliers", supplierController.getAllSuppliers);
+
+  // imports
+  router.post("/api/imports", importController.createImport);
+  router.get("/api/imports", importController.getAllImports);
+  router.get("/api/imports/:id", importController.getImportById);
 
   router.post("/forgot-password", authController.sendResetOTP);
   router.post("/verify-otp", authController.verifyOTP);
