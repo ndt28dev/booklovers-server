@@ -92,6 +92,7 @@ const initWebRoutes = (app) => {
     userController.deleteAddress
   );
 
+  // blogs
   router.get("/api/blogs", blogController.getAllBlogsPage);
   router.get("/api/blog/:id", blogController.getBlogById);
   router.post("/api/blog", upload.single("image"), blogController.createBlog);
@@ -99,8 +100,10 @@ const initWebRoutes = (app) => {
   router.put("/api/blog", upload.single("image"), blogController.updateBlog);
   router.delete("/api/blog/:id", blogController.deleteBlog);
 
+  // contacts
   router.post("/api/contact", contactController.createContact);
   router.get("/api/contacts", contactController.getAllContacts);
+  router.put("/api/contact/:id/status", contactController.updateContactStatus);
 
   router.post("/forgot-password", authController.sendResetOTP);
   router.post("/verify-otp", authController.verifyOTP);

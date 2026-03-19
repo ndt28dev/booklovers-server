@@ -43,7 +43,34 @@ const getAllContacts = async (req, res) => {
   }
 };
 
+const updateContactStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatus = ["pending", "in_progress", "resolved"];
+
+    if (!validStatus.includes(status)) {
+      return res.status(400).json({ message: "Trạng thái không hợp lệ" });
+    }
+
+    const updated = await contactSercive.updateContactStatus(id, status);
+
+    if (!updated) {
+      return res.status(404).json({ message: "Không tìm thấy contact" });
+    }
+
+    res.status(200).json({
+      message: "Cập nhật trạng thái thành công",
+    });
+  } catch (err) {
+    console.error("Lỗi khi cập nhật trạng thái:", err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 export default {
   createContact,
   getAllContacts,
+  updateContactStatus,
 };

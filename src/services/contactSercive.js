@@ -28,7 +28,17 @@ const getAllContacts = async (page, limit) => {
   };
 };
 
+const updateContactStatus = async (id, status) => {
+  const [result] = await pool.query(
+    "UPDATE contacts SET status = ? WHERE id = ?",
+    [status, id]
+  );
+
+  return result.affectedRows > 0;
+};
+
 export default {
   createContact,
   getAllContacts,
+  updateContactStatus,
 };
