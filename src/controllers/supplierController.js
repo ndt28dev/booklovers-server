@@ -16,11 +16,14 @@ const createSupplier = async (req, res) => {
 
 const getAllSuppliers = async (req, res) => {
   try {
-    const data = await supplierService.getAllSuppliers();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const result = await supplierService.getAllSuppliers(page, limit);
 
     res.status(200).json({
       status: "OK",
-      data,
+      ...result,
     });
   } catch (err) {
     console.error(err);

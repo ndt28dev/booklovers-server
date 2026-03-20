@@ -12,11 +12,34 @@ const createSupplier = async (data) => {
   return result.insertId;
 };
 
-const getAllSuppliers = async () => {
+const getAllSuppliers = async (page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+
+  // Lấy data
   const [rows] = await pool.query(
-    `SELECT * FROM suppliers WHERE is_hidden = 0 ORDER BY id DESC `
+    `SELECT * FROM suppliers 
+     WHERE is_hidden = 0 
+     ORDER BY id DESC 
+     LIMIT ? OFFSET ?`,
+    [limit, offset]
   );
-  return rows;
+
+  // Đếm tổng record
+  const [[{ total }]] = await pool.query(
+    `SELECT COUNT(*) as total 
+     FROM suppliers 
+     WHERE is_hidden = 0`
+  );
+
+  return {
+    data: rows,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 };
 
 const updateSupplier = async (id, data) => {
