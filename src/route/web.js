@@ -110,6 +110,8 @@ const initWebRoutes = (app) => {
   // suppliers
   router.post("/api/suppliers", supplierController.createSupplier);
   router.get("/api/suppliers", supplierController.getAllSuppliers);
+  router.put("/api/suppliers/:id", supplierController.updateSupplier);
+  router.delete("/api/suppliers/:id", supplierController.deleteSupplier);
 
   // imports
   router.post("/api/imports", importController.createImport);

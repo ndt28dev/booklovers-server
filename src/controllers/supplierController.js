@@ -28,7 +28,47 @@ const getAllSuppliers = async (req, res) => {
   }
 };
 
+const updateSupplier = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const affectedRows = await supplierService.updateSupplier(id, req.body);
+
+    if (affectedRows === 0) {
+      return res.status(404).json({ message: "Không tìm thấy nhà cung cấp" });
+    }
+
+    res.status(200).json({
+      message: "Cập nhật thành công",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+const deleteSupplier = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const affectedRows = await supplierService.deleteSupplier(id);
+
+    if (affectedRows === 0) {
+      return res.status(404).json({ message: "Không tìm thấy nhà cung cấp" });
+    }
+
+    res.status(200).json({
+      message: "Xoá thành công (đã ẩn)",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 export default {
   createSupplier,
   getAllSuppliers,
+  updateSupplier,
+  deleteSupplier,
 };
