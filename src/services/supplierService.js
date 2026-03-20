@@ -12,6 +12,16 @@ const createSupplier = async (data) => {
   return result.insertId;
 };
 
+const checkEmailExists = async (email) => {
+  const [rows] = await pool.query(
+    `SELECT id FROM suppliers 
+     WHERE email = ? AND is_hidden = 0`,
+    [email]
+  );
+
+  return rows.length > 0;
+};
+
 const getAllSuppliers = async (page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
 

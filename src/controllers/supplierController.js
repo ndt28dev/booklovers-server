@@ -2,6 +2,16 @@ import supplierService from "../services/supplierService.js";
 
 const createSupplier = async (req, res) => {
   try {
+    const { email } = req.body;
+
+    const isExist = await supplierService.checkEmailExists(email);
+
+    if (isExist) {
+      return res.status(400).json({
+        message: "Email đã tồn tại",
+      });
+    }
+
     const id = await supplierService.createSupplier(req.body);
 
     res.status(201).json({
