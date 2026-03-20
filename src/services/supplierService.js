@@ -81,4 +81,5 @@ export default {
   getAllSuppliers,
   updateSupplier,
   deleteSupplier,
+  checkEmailExists,
 };
