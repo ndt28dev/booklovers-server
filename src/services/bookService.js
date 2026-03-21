@@ -174,7 +174,7 @@ const getAllBooks = async (
 
 const getAllBooksNoPaging = async () => {
   const [rows] = await pool.query(
-    "SELECT id, name FROM books WHERE is_hidden = 0 ORDER BY id DESC"
+    "SELECT id, name, price FROM books WHERE is_hidden = 0 ORDER BY id DESC"
   );
   return rows;
 };
