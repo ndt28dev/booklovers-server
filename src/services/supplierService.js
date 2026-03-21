@@ -52,6 +52,16 @@ const getAllSuppliers = async (page = 1, limit = 10) => {
   };
 };
 
+const getAllSuppliersNoPaging = async () => {
+  const [rows] = await pool.query(
+    `SELECT * FROM suppliers 
+     WHERE is_hidden = 0 
+     ORDER BY id DESC`
+  );
+
+  return rows;
+};
+
 const updateSupplier = async (id, data) => {
   const { name, phone, email, address } = data;
 
@@ -82,4 +92,5 @@ export default {
   updateSupplier,
   deleteSupplier,
   checkEmailExists,
+  getAllSuppliersNoPaging,
 };

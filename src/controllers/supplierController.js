@@ -41,6 +41,20 @@ const getAllSuppliers = async (req, res) => {
   }
 };
 
+const getAllSuppliersNoPaging = async (req, res) => {
+  try {
+    const data = await supplierService.getAllSuppliersNoPaging();
+
+    res.status(200).json({
+      status: "OK",
+      data,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 const updateSupplier = async (req, res) => {
   try {
     const { id } = req.params;
@@ -84,4 +98,5 @@ export default {
   getAllSuppliers,
   updateSupplier,
   deleteSupplier,
+  getAllSuppliersNoPaging,
 };

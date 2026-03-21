@@ -22,6 +22,7 @@ const initWebRoutes = (app) => {
   router.get("/", homeController.getHomePage);
 
   router.get("/api/books", bookController.getAllBooks);
+  router.get("/api/books/all", bookController.getAllBooksNoPaging);
   router.get("/api/book/:id", bookController.getBookById);
   router.post(
     "/api/book",
@@ -112,6 +113,7 @@ const initWebRoutes = (app) => {
   router.get("/api/suppliers", supplierController.getAllSuppliers);
   router.put("/api/suppliers/:id", supplierController.updateSupplier);
   router.delete("/api/suppliers/:id", supplierController.deleteSupplier);
+  router.get("/api/suppliers/all", supplierController.getAllSuppliersNoPaging);
 
   // imports
   router.post("/api/imports", importController.createImport);

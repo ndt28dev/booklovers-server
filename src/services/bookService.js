@@ -172,6 +172,13 @@ const getAllBooks = async (
   };
 };
 
+const getAllBooksNoPaging = async () => {
+  const [rows] = await pool.query(
+    "SELECT id, name FROM books WHERE is_hidden = 0 ORDER BY created_at DESC"
+  );
+  return rows;
+};
+
 const getBookById = async (id) => {
   // Lấy thông tin book chính
   const [bookRows] = await pool.query(`SELECT * FROM books WHERE id = ?`, [id]);
@@ -409,6 +416,7 @@ const deleteBook = async (id) => {
 
 export default {
   getAllBooks,
+  getAllBooksNoPaging,
   getBookById,
   createBook,
   updateBook,

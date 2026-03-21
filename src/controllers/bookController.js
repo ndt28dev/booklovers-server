@@ -37,6 +37,15 @@ const getAllBooks = async (req, res) => {
   });
 };
 
+const getAllBooksNoPaging = async (req, res) => {
+  try {
+    const books = await bookService.getAllBooksNoPaging();
+    res.status(200).json(books);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 const getBookById = async (req, res) => {
   const id = req.params.id;
   const data = await bookService.getBookById(id);
@@ -99,6 +108,7 @@ const deleteBook = async (req, res) => {
 
 export default {
   getAllBooks,
+  getAllBooksNoPaging,
   getBookById,
   createBook,
   updateBook,
