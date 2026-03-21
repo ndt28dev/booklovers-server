@@ -73,7 +73,8 @@ const deleteSubcategory = async (id) => {
     throw new Error("Subcategory không tồn tại");
   }
 
-  await pool.query(`DELETE FROM subcategories WHERE id = ?`, [id]);
+  // "Xóa" mềm bằng cách ẩn
+  await pool.query(`UPDATE subcategories SET is_hidden = 1 WHERE id = ?`, [id]);
 
   return { message: "Xoá thành công" };
 };
