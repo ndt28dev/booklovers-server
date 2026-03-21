@@ -56,32 +56,60 @@ const createImport = async ({ supplier_id, items }) => {
 const getAllImports = async (page, limit) => {
   const offset = (page - 1) * limit;
 
+  // 1️⃣ Lấy phiếu nhập + supplier
   const [rows] = await pool.query(
     `SELECT 
-          i.*,
-          s.id as supplier_id,
-          s.name as supplier_name
-       FROM imports i
-       LEFT JOIN suppliers s ON i.supplier_id = s.id
-       ORDER BY i.id DESC
-       LIMIT ? OFFSET ?`,
+        i.*,
+        s.id as supplier_id,
+        s.name as supplier_name
+     FROM imports i
+     LEFT JOIN suppliers s ON i.supplier_id = s.id
+     ORDER BY i.id DESC
+     LIMIT ? OFFSET ?`,
     [limit, offset]
   );
 
+  // 2️⃣ Lấy tổng số phiếu nhập
   const [totalRows] = await pool.query(`SELECT COUNT(*) as total FROM imports`);
 
-  // 👉 transform lại data
+  // 3️⃣ Lấy chi tiết tất cả import vừa lấy
+  const importIds = rows.map((r) => r.id);
+  let details = [];
+  if (importIds.length > 0) {
+    const [detailRows] = await pool.query(
+      `SELECT 
+          d.id as detail_id,
+          d.import_id,
+          d.book_id,
+          d.quantity,
+          d.price,
+          b.name as book_name
+       FROM import_details d
+       LEFT JOIN books b ON d.book_id = b.id
+       WHERE d.import_id IN (?)`,
+      [importIds]
+    );
+
+    details = detailRows;
+  }
+
+  // 4️⃣ Gộp chi tiết vào từng phiếu nhập
   const imports = rows.map((row) => {
     const { supplier_id, supplier_name, ...rest } = row;
 
+    const items = details
+      .filter((d) => d.import_id === row.id)
+      .map((d) => ({
+        book_id: d.book_id,
+        book_name: d.book_name,
+        quantity: d.quantity,
+        price: d.price,
+      }));
+
     return {
       ...rest,
-      supplier: supplier_id
-        ? {
-            id: supplier_id,
-            name: supplier_name,
-          }
-        : null,
+      supplier: supplier_id ? { id: supplier_id, name: supplier_name } : null,
+      items,
     };
   });
 
