@@ -15,6 +15,7 @@ import vnpayController from "../controllers/vnpayController";
 import statisticController from "../controllers/statisticController";
 import supplierController from "../controllers/supplierController";
 import importController from "../controllers/importController";
+import subCategoryController from "../controllers/subCategoryController";
 
 const router = express.Router();
 
@@ -121,6 +122,16 @@ const initWebRoutes = (app) => {
   router.get("/api/imports", importController.getAllImports);
   router.get("/api/imports/:id", importController.getImportById);
 
+  // sub categories
+  router.get("/api/subcategories", subCategoryController.getAllSubcategories);
+  router.post("/api/subcategories", subCategoryController.createSubcategory);
+  router.put("/api/subcategories/:id", subCategoryController.updateSubcategory);
+
+  router.delete(
+    "/api/subcategories/:id",
+    subCategoryController.deleteSubcategory
+  );
+
   router.post("/forgot-password", authController.sendResetOTP);
   router.post("/verify-otp", authController.verifyOTP);
   router.post("/reset-password", authController.resetPassword);
@@ -157,6 +168,7 @@ const initWebRoutes = (app) => {
     cartController.removeItemFromCart
   );
 
+  // promotions
   router.get("/api/promotions", promotionController.getAllPromotions);
   router.post("/api/promotion/apply", promotionController.applyPromotion);
   router.post("/api/promotion", promotionController.createPromotion);
