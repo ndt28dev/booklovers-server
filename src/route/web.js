@@ -44,8 +44,6 @@ const initWebRoutes = (app) => {
   );
   router.delete("/api/book/:id", bookController.deleteBook);
 
-  router.get("/api/menu", categoryController.getCategoriesWithSub);
-
   router.get("/api/users", userController.getAllUsers);
   router.get("/api/user/profile", authMiddleware, userController.getProfile);
   router.get("/api/user/:id", userController.getUserById);
@@ -121,6 +119,12 @@ const initWebRoutes = (app) => {
   router.post("/api/imports", importController.createImport);
   router.get("/api/imports", importController.getAllImports);
   router.get("/api/imports/:id", importController.getImportById);
+
+  // categories
+  router.get("/api/menu", categoryController.getCategoriesWithSub);
+  router.post("/api/categories", categoryController.createCategory);
+  router.put("/api/categories/:id", categoryController.updateCategory);
+  router.delete("/api/categories/:id", categoryController.deleteCategory);
 
   // sub categories
   router.get("/api/subcategories", subCategoryController.getAllSubcategories);
