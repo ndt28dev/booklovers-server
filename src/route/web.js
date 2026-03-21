@@ -21,6 +21,7 @@ const router = express.Router();
 const initWebRoutes = (app) => {
   router.get("/", homeController.getHomePage);
 
+  // BOOKS
   router.get("/api/books", bookController.getAllBooks);
   router.get("/api/books/all", bookController.getAllBooksNoPaging);
   router.get("/api/book/:id", bookController.getBookById);

@@ -2,7 +2,7 @@ import importService from "../services/importService.js";
 
 const createImport = async (req, res) => {
   try {
-    const { supplier_id, items } = req.body;
+    const { supplier_id, total_amount, items } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: "Không có sản phẩm nhập" });
@@ -10,6 +10,7 @@ const createImport = async (req, res) => {
 
     const importId = await importService.createImport({
       supplier_id,
+      total_amount,
       items,
     });
 

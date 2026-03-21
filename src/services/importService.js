@@ -1,46 +1,56 @@
 import pool from "../config/connectDB.js";
 
 const createImport = async ({ supplier_id, items }) => {
-  const conn = await pool.getConnection();
+  if (!supplier_id) throw new Error("Thiếu nhà cung cấp");
+  if (!items || items.length === 0) throw new Error("Danh sách sản phẩm trống");
 
-  try {
-    await conn.beginTransaction();
+  // Tính tổng tiền
+  let total_amount = 0;
+  const parsedItems = items.map((item) => {
+    const book_id = Number(item.book_id);
+    const quantity = Number(item.quantity);
+    const price = Number(item.price);
 
-    // 1. tạo import
-    const [importResult] = await conn.query(
-      `INSERT INTO imports (supplier_id, created_at)
-       VALUES (?, NOW())`,
-      [supplier_id]
-    );
-
-    const importId = importResult.insertId;
-
-    // 2. insert import_details + update stock
-    for (const item of items) {
-      const { book_id, quantity, price } = item;
-
-      // insert detail
-      await conn.query(
-        `INSERT INTO import_details (import_id, book_id, quantity, price)
-         VALUES (?, ?, ?, ?)`,
-        [importId, book_id, quantity, price]
-      );
-
-      // update stock
-      await conn.query(`UPDATE books SET stock = stock + ? WHERE id = ?`, [
-        quantity,
-        book_id,
-      ]);
+    if (!book_id || quantity <= 0 || price <= 0) {
+      throw new Error("Dữ liệu sản phẩm không hợp lệ");
     }
 
-    await conn.commit();
-    return importId;
-  } catch (err) {
-    await conn.rollback();
-    throw err;
-  } finally {
-    conn.release();
+    total_amount += quantity * price;
+    return { book_id, quantity, price };
+  });
+
+  // 1. Insert import
+  const [importResult] = await pool.query(
+    `INSERT INTO imports (supplier_id, total_amount, created_at)
+     VALUES (?, ?, NOW())`,
+    [supplier_id, total_amount]
+  );
+
+  const importId = importResult.insertId;
+
+  // 2. Insert import_details (batch)
+  const values = parsedItems.map((item) => [
+    importId,
+    item.book_id,
+    item.quantity,
+    item.price,
+  ]);
+
+  await pool.query(
+    `INSERT INTO import_details (import_id, book_id, quantity, price)
+     VALUES ?`,
+    [values]
+  );
+
+  // 3. Update stock
+  for (const item of parsedItems) {
+    await pool.query(`UPDATE books SET quantity = quantity + ? WHERE id = ?`, [
+      item.quantity,
+      item.book_id,
+    ]);
   }
+
+  return importId;
 };
 
 const getAllImports = async (page, limit) => {
