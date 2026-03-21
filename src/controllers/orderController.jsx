@@ -93,9 +93,12 @@ const getAllOrders = async (req, res) => {
       toDate = "",
     } = req.query;
 
-    const data = await orderService.getAllOrders({
-      page: parseInt(page),
-      limit: parseInt(limit),
+    const pageNum = +page;
+    const limitNum = +limit;
+
+    const result = await orderService.getAllOrders({
+      page: pageNum,
+      limit: limitNum,
       search,
       paymentMethod,
       status,
@@ -107,10 +110,16 @@ const getAllOrders = async (req, res) => {
     return res.status(200).json({
       errCode: 0,
       message: "Success",
-      ...data,
+      data: result.orders,
+      pagination: {
+        total: result.total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(result.total / limitNum),
+      },
     });
   } catch (error) {
-    console.error("Error fetching all orders:", error);
+    console.error(error);
     return res.status(500).json({
       errCode: 1,
       message: "Internal server error",

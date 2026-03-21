@@ -316,7 +316,7 @@ const getAllOrders = async ({
     params.push(toDate);
   }
 
-  let sortQuery = "";
+  let sortQuery = "ORDER BY o.order_date DESC";
 
   switch (priceFilter) {
     case "lt500":
@@ -339,15 +339,18 @@ const getAllOrders = async ({
   const whereClause =
     filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
+  // ✅ total
   const [totalResult] = await pool.query(
-    `SELECT COUNT(*) AS total FROM orders o
+    `SELECT COUNT(*) AS total
+     FROM orders o
      LEFT JOIN users u ON o.user_id = u.id
-     ${whereClause} ${sortQuery}`,
+     ${whereClause}`,
     params
   );
-  const totalOrders = totalResult[0].total;
-  const totalPages = Math.ceil(totalOrders / limit);
 
+  const total = totalResult[0].total;
+
+  // ✅ data
   const [orders] = await pool.query(
     `SELECT 
       o.*, 
@@ -356,44 +359,37 @@ const getAllOrders = async ({
     LEFT JOIN users u ON o.user_id = u.id
     LEFT JOIN promotion p ON o.promotion_id = p.id
     ${whereClause}
-    ${sortQuery || "ORDER BY o.order_date DESC"}
+    ${sortQuery}
     LIMIT ? OFFSET ?`,
     [...params, limit, offset]
   );
 
-  const orderIds = orders.map((order) => order.id);
-  if (orderIds.length === 0) {
-    return {
-      orders: [],
-      total: 0,
-      totalPages: 0,
-      currentPage: page,
-    };
+  const orderIds = orders.map((o) => o.id);
+
+  let itemsByOrder = {};
+
+  if (orderIds.length > 0) {
+    const [orderItems] = await pool.query(
+      `SELECT 
+        oi.id AS order_item_id,
+        oi.order_id,
+        oi.book_id,
+        oi.quantity,
+        oi.unit_price,
+        b.name AS book_name
+      FROM order_items oi
+      JOIN books b ON oi.book_id = b.id
+      WHERE oi.order_id IN (?)`,
+      [orderIds]
+    );
+
+    orderItems.forEach((item) => {
+      if (!itemsByOrder[item.order_id]) {
+        itemsByOrder[item.order_id] = [];
+      }
+      itemsByOrder[item.order_id].push(item);
+    });
   }
-
-  const [orderItems] = await pool.query(
-    `SELECT 
-      oi.id AS order_item_id,
-      oi.order_id,
-      oi.book_id,
-      oi.quantity,
-      oi.unit_price,
-      b.name AS book_name,
-      bi.image_url AS book_image
-    FROM order_items oi
-    JOIN books b ON oi.book_id = b.id
-    LEFT JOIN book_images bi ON b.id = bi.book_id AND bi.is_main = 1
-    WHERE oi.order_id IN (?)`,
-    [orderIds]
-  );
-
-  const itemsByOrder = {};
-  orderItems.forEach((item) => {
-    if (!itemsByOrder[item.order_id]) {
-      itemsByOrder[item.order_id] = [];
-    }
-    itemsByOrder[item.order_id].push(item);
-  });
 
   const fullOrders = orders.map((order) => ({
     ...order,
@@ -402,9 +398,7 @@ const getAllOrders = async ({
 
   return {
     orders: fullOrders,
-    total: totalOrders,
-    totalPages,
-    currentPage: page,
+    total,
   };
 };
 
