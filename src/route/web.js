@@ -134,7 +134,11 @@ const initWebRoutes = (app) => {
 
   // setting system
   router.get("/api/settings-system", systemController.getSettings);
-  router.put("/api/settings-system", systemController.updateSettings);
+  router.put(
+    "/api/settings-system",
+    upload.single("logo"),
+    systemController.updateSettings
+  );
 
   router.delete(
     "/api/subcategories/:id",

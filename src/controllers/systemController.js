@@ -13,7 +13,13 @@ const getSettings = async (req, res) => {
 const updateSettings = async (req, res) => {
   try {
     const data = req.body;
-    await systemService.updateSystemSettings(data);
+
+    let logo = data.logo || null;
+    if (req.file) {
+      logo = `${req.file.filename}`;
+    }
+
+    await systemService.updateSystemSettings({ ...data, logo });
     res.json({ message: "Cập nhật thành công" });
   } catch (error) {
     console.error(error);
