@@ -14,12 +14,15 @@ const updateSettings = async (req, res) => {
   try {
     const data = req.body;
 
-    let logo = data.logo || null;
+    // Nếu có file logo mới
+    let logo = null;
     if (req.file) {
-      logo = `${req.file.filename}`;
+      logo = `${req.file.filename}`; // lưu path server để hiển thị
     }
 
+    // Gọi service, truyền data + logo
     await systemService.updateSystemSettings({ ...data, logo });
+
     res.json({ message: "Cập nhật thành công" });
   } catch (error) {
     console.error(error);
