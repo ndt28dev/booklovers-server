@@ -16,6 +16,7 @@ import statisticController from "../controllers/statisticController";
 import supplierController from "../controllers/supplierController";
 import importController from "../controllers/importController";
 import subCategoryController from "../controllers/subCategoryController";
+import systemController from "../controllers/systemController";
 
 const router = express.Router();
 
@@ -130,6 +131,10 @@ const initWebRoutes = (app) => {
   router.get("/api/subcategories", subCategoryController.getAllSubcategories);
   router.post("/api/subcategories", subCategoryController.createSubcategory);
   router.put("/api/subcategories/:id", subCategoryController.updateSubcategory);
+
+  // setting system
+  router.get("/api/settings-system", systemController.getSettings);
+  router.put("/api/settings-system", systemController.updateSettings);
 
   router.delete(
     "/api/subcategories/:id",
