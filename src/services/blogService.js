@@ -42,7 +42,7 @@ const getAllBlogsPage = async (limit, offset, is_featured, search) => {
 
 const getFeaturedBlogs = async () => {
   const [rows] = await pool.query(
-    "SELECT * FROM blogs WHERE is_featured = 1 ORDER BY date DESC"
+    "SELECT * FROM blogs WHERE is_featured = 1 AND is_hidden = 0 ORDER BY date DESC "
   );
   return rows;
 };
