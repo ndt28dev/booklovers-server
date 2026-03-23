@@ -96,16 +96,16 @@ const createUser = async (req, res) => {
 
     await userService.createUser(newUser);
 
-    await sendMail(
-      email,
-      "Chào mừng bạn đến với BookLovers!",
-      `
-        <h2>Xin chào ${fullname},</h2>
-        <p>Bạn đã đăng ký tài khoản thành công tại <strong>BookLovers</strong>.</p>
-        <p>Chúc bạn có trải nghiệm đọc sách tuyệt vời!</p>
-        <p style="margin-top:20px;">-- BookLovers Team ❤️</p>
-      `
-    );
+    // await sendMail(
+    //   email,
+    //   "Chào mừng bạn đến với BookLovers!",
+    //   `
+    //     <h2>Xin chào ${fullname},</h2>
+    //     <p>Bạn đã đăng ký tài khoản thành công tại <strong>BookLovers</strong>.</p>
+    //     <p>Chúc bạn có trải nghiệm đọc sách tuyệt vời!</p>
+    //     <p style="margin-top:20px;">-- BookLovers Team ❤️</p>
+    //   `
+    // );
 
     res.status(201).json({ message: "Tạo người dùng thành công" });
   } catch (err) {

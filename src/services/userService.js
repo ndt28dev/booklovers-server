@@ -165,6 +165,7 @@ const createUser = async (userData) => {
   const { email, password, fullname, role, avatar, birthday, phone, gender } =
     userData;
   const createdAt = new Date();
+  const birthdayValue = birthday ? birthday : null;
 
   const [result] = await pool.query(
     `INSERT INTO users (email, password, fullname, role, avatar, birthday ,phone, gender, created_at)
@@ -175,7 +176,7 @@ const createUser = async (userData) => {
       fullname,
       role,
       avatar,
-      birthday,
+      birthdayValue,
       phone,
       gender,
       createdAt,
