@@ -69,6 +69,9 @@ const getAllBooks = async (
       sortClause = "";
   }
 
+  // trước khi chạy query:
+  let finalSortClause = sortClause || "ORDER BY b.id DESC";
+
   const [rows] = await pool.query(
     `SELECT 
         b.*, 
@@ -96,9 +99,8 @@ const getAllBooks = async (
      
   
      ${whereClause}
-     ${sortClause}
+     ${finalSortClause}
      
-     ORDER BY b.id DESC
      LIMIT ? OFFSET ?`,
     [...values, Number(limit), Number(offset)]
   );
