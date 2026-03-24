@@ -3,10 +3,10 @@ import pool from "../config/connectDB.js";
 // Lấy tất cả category + subcategories
 const getCategoriesWithSub = async () => {
   const [categories] = await pool.query(
-    "SELECT * FROM categories WHERE is_hidden = 0"
+    "SELECT * FROM categories WHERE is_hidden = 0 ORDER BY id DESC"
   );
   const [subcategories] = await pool.query(
-    "SELECT * FROM subcategories WHERE is_hidden = 0"
+    "SELECT * FROM subcategories WHERE is_hidden = 0 ORDER BY id DESC"
   );
 
   return categories.map((cat) => {

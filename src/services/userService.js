@@ -130,7 +130,7 @@ const getAllUsers = async (limit, offset, role, search) => {
     countParams.push(searchValue, searchValue, searchValue);
   }
 
-  query += " LIMIT ? OFFSET ?";
+  query += " Order By created_at DESC LIMIT ? OFFSET ?";
   params.push(limit, offset);
 
   const [rows] = await pool.query(query, params);
