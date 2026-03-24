@@ -28,6 +28,7 @@ const createOrder = async (userId, orderData) => {
   const now = new Date();
   const orderDate = now.toISOString().slice(0, 19).replace("T", " ");
 
+  // 1️⃣ Tạo order
   const [orderResult] = await pool.query(
     `INSERT INTO orders (
       user_id,
@@ -65,6 +66,7 @@ const createOrder = async (userId, orderData) => {
 
   const orderId = orderResult.insertId;
 
+  // 2️⃣ Insert order_items
   for (const item of cartItems) {
     const discount = item.discount || 0;
     const unitPrice = item.price * (1 - discount / 100);
@@ -76,6 +78,32 @@ const createOrder = async (userId, orderData) => {
     );
   }
 
+  // 3️⃣ Update books.sold (tối ưu 1 query)
+  if (cartItems.length > 0) {
+    const updates = cartItems
+      .map((item) => `WHEN id = ${item.book_id} THEN sold + ${item.quantity}`)
+      .join(" ");
+
+    const ids = cartItems.map((item) => item.book_id);
+
+    await pool.query(
+      `UPDATE books 
+       SET sold = CASE ${updates} END
+       WHERE id IN (${ids.join(",")})`
+    );
+  }
+
+  // 4️⃣ Update promotion.used_count
+  if (promotionId) {
+    await pool.query(
+      `UPDATE promotion 
+       SET used_count = used_count + 1 
+       WHERE id = ?`,
+      [promotionId]
+    );
+  }
+
+  // 5️⃣ Clear cart
   const bookIds = cartItems.map((item) => item.book_id);
   await cartService.clearCartByUser(userId, bookIds);
 

@@ -7,13 +7,15 @@ const createOrder = async (req, res) => {
     const userId = req.user.id;
     const orderData = req.body;
 
+    console.log(orderData);
+
     const { orderId, orderCode } = await orderService.createOrder(
       userId,
       orderData
     );
 
-    const user = await userService.getUserById(userId);
-    const { email, fullname } = user;
+    // const user = await userService.getUserById(userId);
+    // const { email, fullname } = user;
     // await sendMail(
     //   email,
     //   "Đặt hàng thành công - BookLovers ❤️",
