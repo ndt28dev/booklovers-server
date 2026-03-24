@@ -19,24 +19,28 @@ const getCartByUser = async (userId) => {
 
   const [items] = await pool.query(
     `
-        SELECT 
-          ci.id AS cart_item_id,
-          ci.quantity,
-          b.id AS book_id,
-          b.name,
-          b.price,
-          b.discount,
-          bi.image_url AS image
-        FROM cart_items ci
-        JOIN books b ON ci.book_id = b.id
-        LEFT JOIN book_images bi ON b.id = bi.book_id AND bi.is_main = 1
-        WHERE ci.cart_id = ?
-        ORDER BY ci.created_at DESC
-      `,
+    SELECT 
+      ci.id AS cart_item_id,
+      ci.quantity,
+      b.id AS book_id,
+      b.name,
+      b.price,
+      b.discount,
+      b.quantity AS stock,   -- ✅ thêm dòng này
+      b.sold,                -- ✅ thêm dòng này
+      bi.image_url AS image
+    FROM cart_items ci
+    JOIN books b ON ci.book_id = b.id
+    LEFT JOIN book_images bi 
+      ON b.id = bi.book_id AND bi.is_main = 1
+    WHERE ci.cart_id = ?
+    ORDER BY ci.created_at DESC
+    `,
     [cart.id]
   );
 
   delete cart.user_id;
+
   return { cart, items };
 };
 
