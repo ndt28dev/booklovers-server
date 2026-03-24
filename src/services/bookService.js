@@ -93,10 +93,12 @@ const getAllBooks = async (
      LEFT JOIN book_images i ON b.id = i.book_id AND i.is_main = 1
      LEFT JOIN categories c ON b.category_id = c.id
      LEFT JOIN subcategories sc ON b.subcategory_id = sc.id
+     
   
      ${whereClause}
      ${sortClause}
-  
+     
+     ORDER BY b.id DESC
      LIMIT ? OFFSET ?`,
     [...values, Number(limit), Number(offset)]
   );
