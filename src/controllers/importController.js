@@ -26,18 +26,23 @@ const createImport = async (req, res) => {
 
 const getAllImports = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const { page = 1, limit = 10, supplierId, startDate, endDate } = req.query;
 
-    const result = await importService.getAllImports(page, limit);
+    const result = await importService.getAllImports({
+      page: parseInt(page),
+      limit: parseInt(limit),
+      supplierId,
+      startDate,
+      endDate,
+    });
 
     res.status(200).json({
       status: "OK",
       data: result.imports,
       pagination: {
         total: result.total,
-        page,
-        limit,
+        page: parseInt(page),
+        limit: parseInt(limit),
         totalPages: Math.ceil(result.total / limit),
       },
     });

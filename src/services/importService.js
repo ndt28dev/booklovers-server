@@ -53,10 +53,34 @@ const createImport = async ({ supplier_id, items }) => {
   return importId;
 };
 
-const getAllImports = async (page, limit) => {
+const getAllImports = async ({
+  page = 1,
+  limit = 10,
+  supplierId,
+  startDate,
+  endDate,
+}) => {
   const offset = (page - 1) * limit;
+  let whereClause = "WHERE 1=1";
+  const values = [];
 
-  // 1️⃣ Lấy phiếu nhập + supplier
+  // ✅ lọc theo supplierId
+  if (supplierId) {
+    whereClause += " AND i.supplier_id = ?";
+    values.push(supplierId);
+  }
+
+  // ✅ lọc theo ngày
+  if (startDate) {
+    whereClause += " AND DATE(i.created_at) >= ?";
+    values.push(startDate);
+  }
+  if (endDate) {
+    whereClause += " AND DATE(i.created_at) <= ?";
+    values.push(endDate);
+  }
+
+  // 1️⃣ Lấy imports
   const [rows] = await pool.query(
     `SELECT 
         i.*,
@@ -64,21 +88,28 @@ const getAllImports = async (page, limit) => {
         s.name as supplier_name
      FROM imports i
      LEFT JOIN suppliers s ON i.supplier_id = s.id
+     ${whereClause}
      ORDER BY i.id DESC
      LIMIT ? OFFSET ?`,
-    [limit, offset]
+    [...values, limit, offset]
   );
 
-  // 2️⃣ Lấy tổng số phiếu nhập
-  const [totalRows] = await pool.query(`SELECT COUNT(*) as total FROM imports`);
+  // 2️⃣ count
+  const [totalRows] = await pool.query(
+    `SELECT COUNT(*) as total 
+     FROM imports i
+     LEFT JOIN suppliers s ON i.supplier_id = s.id
+     ${whereClause}`,
+    values
+  );
 
-  // 3️⃣ Lấy chi tiết tất cả import vừa lấy
+  // 3️⃣ details
   const importIds = rows.map((r) => r.id);
   let details = [];
+
   if (importIds.length > 0) {
     const [detailRows] = await pool.query(
       `SELECT 
-          d.id as detail_id,
           d.import_id,
           d.book_id,
           d.quantity,
@@ -89,11 +120,10 @@ const getAllImports = async (page, limit) => {
        WHERE d.import_id IN (?)`,
       [importIds]
     );
-
     details = detailRows;
   }
 
-  // 4️⃣ Gộp chi tiết vào từng phiếu nhập
+  // 4️⃣ merge
   const imports = rows.map((row) => {
     const { supplier_id, supplier_name, ...rest } = row;
 
