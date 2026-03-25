@@ -12,12 +12,14 @@ const getAllBlogsPage = async (req, res) => {
         : undefined;
 
     const search = req.query.search || "";
+    const status = req.query.status || ""; // DRAFT, PUBLISHED, ARCHIVED
 
     const result = await blogService.getAllBlogsPage(
       limit,
       offset,
       is_featured,
-      search
+      search,
+      status
     );
 
     res.status(200).json({
@@ -35,6 +37,33 @@ const getAllBlogsPage = async (req, res) => {
     res.status(500).json({
       status: "ERROR",
       message: "Lỗi khi lấy blog",
+    });
+  }
+};
+
+const getBlogsForClient = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const result = await blogService.getAllBlogsForClientPage(page, limit);
+
+    return res.status(200).json({
+      status: "OK",
+      message: "Fetched blogs successfully",
+      data: result.blogs,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching blogs:", err);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Failed to fetch blogs",
     });
   }
 };
@@ -73,7 +102,15 @@ const getBlogById = async (req, res) => {
 
 const createBlog = async (req, res) => {
   try {
-    const { title, content, author, is_featured, description } = req.body;
+    const {
+      title,
+      content,
+      author,
+      is_featured,
+      description,
+      date,
+      is_hidden,
+    } = req.body;
     const image = req.file ? req.file.filename : null;
 
     const newBlog = await blogService.createBlog({
@@ -81,8 +118,10 @@ const createBlog = async (req, res) => {
       content,
       author,
       image,
+      date,
       is_featured,
       description,
+      is_hidden,
     });
 
     res.status(201).json({ message: "Tạo blog thành công", data: newBlog });
@@ -94,7 +133,16 @@ const createBlog = async (req, res) => {
 
 const updateBlog = async (req, res) => {
   try {
-    const { title, content, author, description, is_featured, id } = req.body;
+    const {
+      title,
+      content,
+      author,
+      description,
+      is_featured,
+      date,
+      id,
+      is_hidden,
+    } = req.body;
 
     let image = null;
 
@@ -107,9 +155,11 @@ const updateBlog = async (req, res) => {
       title,
       content,
       author,
+      date,
       image,
       is_featured,
       description,
+      is_hidden,
     });
 
     res.status(200).json({ message: "Cập nhật thành công", data: updated });
@@ -142,4 +192,5 @@ export default {
   updateBlog,
   deleteBlog,
   getFeaturedBlogs,
+  getBlogsForClient,
 };

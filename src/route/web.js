@@ -103,6 +103,7 @@ const initWebRoutes = (app) => {
   router.get("/api/blogs/featured", blogController.getFeaturedBlogs);
   router.put("/api/blog", upload.single("image"), blogController.updateBlog);
   router.delete("/api/blog/:id", blogController.deleteBlog);
+  router.get("/api/blogs/for-client", blogController.getBlogsForClient);
 
   // contacts
   router.post("/api/contact", contactController.createContact);
