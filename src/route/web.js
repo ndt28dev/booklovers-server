@@ -242,6 +242,7 @@ const initWebRoutes = (app) => {
     "/api/admin/orders/update-status/:orderId",
     orderController.updateOrderStatus
   );
+
   app.use("/", router);
 };
 
