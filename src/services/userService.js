@@ -105,8 +105,25 @@ export const handleFacebookLogin = async (accessToken) => {
   }
 };
 
-const getAllUsers = async (limit, offset, role, search) => {
-  let query = "SELECT * FROM users WHERE is_hidden = 0";
+const getAllUsers = async (limit, offset, role, search, phone, gender) => {
+  let query = `
+    SELECT 
+      id,
+      email,
+      password,
+      fullname,
+      role,
+      avatar,
+      DATE_FORMAT(birthday, '%Y-%m-%d') AS birthday,
+      gender,
+      phone,
+      facebook_id,
+      created_at,
+      is_hidden
+    FROM users
+    WHERE is_hidden = 0
+  `;
+
   let countQuery = "SELECT COUNT(*) as total FROM users WHERE is_hidden = 0";
 
   let params = [];
@@ -120,17 +137,32 @@ const getAllUsers = async (limit, offset, role, search) => {
     countParams.push(role);
   }
 
-  // search name email phone
+  // search name/email/phone
   if (search) {
     query += " AND (fullname LIKE ? OR email LIKE ? OR phone LIKE ?)";
     countQuery += " AND (fullname LIKE ? OR email LIKE ? OR phone LIKE ?)";
-
     const searchValue = `%${search}%`;
     params.push(searchValue, searchValue, searchValue);
     countParams.push(searchValue, searchValue, searchValue);
   }
 
-  query += " Order By created_at DESC LIMIT ? OFFSET ?";
+  // filter phone
+  if (phone) {
+    query += " AND phone LIKE ?";
+    countQuery += " AND phone LIKE ?";
+    params.push(`%${phone}%`);
+    countParams.push(`%${phone}%`);
+  }
+
+  // filter gender
+  if (gender) {
+    query += " AND gender = ?";
+    countQuery += " AND gender = ?";
+    params.push(gender.toUpperCase()); // ví dụ 'MALE' hoặc 'FEMALE'
+    countParams.push(gender.toUpperCase());
+  }
+
+  query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
   params.push(limit, offset);
 
   const [rows] = await pool.query(query, params);

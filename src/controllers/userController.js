@@ -14,8 +14,18 @@ const getAllUsers = async (req, res) => {
 
     const role = req.query.role || "";
     const search = req.query.search || "";
+    const phone = req.query.phone || ""; // mới: filter theo số điện thoại
+    const gender = req.query.gender || ""; // mới: filter theo giới tính
 
-    const result = await userService.getAllUsers(limit, offset, role, search);
+    // gọi service với các filter mới
+    const result = await userService.getAllUsers(
+      limit,
+      offset,
+      role,
+      search,
+      phone,
+      gender
+    );
 
     return res.status(200).json({
       status: "OK",
