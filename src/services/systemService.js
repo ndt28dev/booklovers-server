@@ -25,15 +25,27 @@ const updateSystemSettings = async (data) => {
     instagram,
     tiktok,
     youtube,
+    google_map_link,
   } = data;
 
   const [result] = await pool.query(
     `UPDATE system_settings SET 
         logo = ?, hotline = ?, email = ?, address = ?, zalo = ?, 
-        facebook = ?, instagram = ?, tiktok = ?, youtube = ?,
+        facebook = ?, instagram = ?, tiktok = ?, youtube = ?, google_map_link = ?,
         updated_at = NOW()
        WHERE id = 1`,
-    [logo, hotline, email, address, zalo, facebook, instagram, tiktok, youtube]
+    [
+      logo,
+      hotline,
+      email,
+      address,
+      zalo,
+      facebook,
+      instagram,
+      tiktok,
+      youtube,
+      google_map_link,
+    ]
   );
 
   return result;

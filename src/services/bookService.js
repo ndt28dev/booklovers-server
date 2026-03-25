@@ -242,23 +242,23 @@ const createBook = async (bookData, mainImage, subImages) => {
 
   const bookId = result.insertId;
 
-  // 2️⃣ Insert book details
+  // 2️⃣ Insert book details an toàn
   await pool.query(
     `INSERT INTO book_details
-    (book_id, barcode, supplier_name, authors, publisher, published_year, language, weight_gram, dimensions, page_count, cover_type)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (book_id, barcode, supplier_name, authors, publisher, published_year, language, weight_gram, dimensions, page_count, cover_type)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       bookId,
-      barcode,
-      supplier_name,
-      authors,
-      publisher,
-      published_year,
-      language,
-      weight_gram,
-      dimensions,
-      page_count,
-      cover_type,
+      barcode ?? "", // nếu null/undefined -> ""
+      supplier_name ?? "",
+      authors ?? "",
+      publisher ?? "",
+      published_year ?? 0, // nếu năm xuất bản chưa có -> 0
+      language ?? "",
+      weight_gram ?? 0, // nếu chưa có -> 0
+      dimensions ?? "",
+      page_count ?? 0, // nếu chưa có -> 0
+      cover_type ?? "",
     ]
   );
 
