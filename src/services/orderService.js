@@ -97,8 +97,15 @@ const createOrder = async (userId, orderData) => {
   if (promotionId) {
     await pool.query(
       `UPDATE promotion 
-       SET used_count = used_count + 1 
-       WHERE id = ?`,
+     SET 
+       used_count = used_count + 1,
+       status = CASE
+         WHEN usage_limit IS NOT NULL 
+              AND used_count + 1 >= usage_limit 
+         THEN 'expired'
+         ELSE status
+       END
+     WHERE id = ?`,
       [promotionId]
     );
   }

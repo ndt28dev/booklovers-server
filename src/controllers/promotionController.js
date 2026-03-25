@@ -4,17 +4,18 @@ export const getAllPromotions = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-
     const offset = (page - 1) * limit;
 
     const discount_type = req.query.discount_type || "";
     const search = req.query.search || "";
+    const status = req.query.status || "";
 
     const result = await promotionService.getAllPromotions(
       limit,
       offset,
       discount_type,
-      search
+      search,
+      status
     );
 
     res.status(200).json({

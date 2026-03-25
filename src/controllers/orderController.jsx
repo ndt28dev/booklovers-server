@@ -7,8 +7,6 @@ const createOrder = async (req, res) => {
     const userId = req.user.id;
     const orderData = req.body;
 
-    console.log(orderData);
-
     const { orderId, orderCode } = await orderService.createOrder(
       userId,
       orderData

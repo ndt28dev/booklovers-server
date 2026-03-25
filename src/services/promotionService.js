@@ -1,16 +1,33 @@
 import pool from "../config/connectDB.js";
 import XLSX from "xlsx";
 
-const getAllPromotions = async (limit, offset, discount_type, search) => {
-  let query = `SELECT * FROM promotion WHERE  is_hidden = 0`;
-  let countQuery = `SELECT COUNT(*) as total FROM promotion WHERE 1=1`;
+const getAllPromotions = async (
+  limit,
+  offset,
+  discount_type,
+  search,
+  status
+) => {
+  let query = `
+    SELECT 
+      p.*,
+      CASE
+        WHEN NOW() < p.start_date THEN 'upcoming'
+        WHEN NOW() BETWEEN p.start_date AND p.end_date THEN 'active'
+        ELSE 'expired'
+      END AS computed_status
+    FROM promotion p
+    WHERE p.is_hidden = 0
+  `;
+
+  let countQuery = `SELECT COUNT(*) as total FROM promotion WHERE is_hidden = 0`;
 
   const params = [];
   const countParams = [];
 
   // filter discount_type
   if (discount_type) {
-    query += ` AND discount_type = ?`;
+    query += ` AND p.discount_type = ?`;
     countQuery += ` AND discount_type = ?`;
 
     params.push(discount_type);
@@ -19,7 +36,7 @@ const getAllPromotions = async (limit, offset, discount_type, search) => {
 
   // search
   if (search) {
-    query += ` AND (code LIKE ? OR description LIKE ?)`;
+    query += ` AND (p.code LIKE ? OR p.description LIKE ?)`;
     countQuery += ` AND (code LIKE ? OR description LIKE ?)`;
 
     const keyword = `%${search}%`;
@@ -28,25 +45,58 @@ const getAllPromotions = async (limit, offset, discount_type, search) => {
     countParams.push(keyword, keyword);
   }
 
-  query += ` ORDER BY id DESC LIMIT ? OFFSET ?`;
+  // 👉 filter status (quan trọng)
+  if (status) {
+    query += ` HAVING computed_status = ?`;
+    params.push(status);
 
+    // countQuery phải viết lại logic giống CASE
+    countQuery += `
+      AND (
+        (? = 'upcoming' AND NOW() < start_date)
+        OR (? = 'active' AND NOW() BETWEEN start_date AND end_date)
+        OR (? = 'expired' AND NOW() > end_date)
+      )
+    `;
+    countParams.push(status, status, status);
+  }
+
+  query += ` ORDER BY p.id DESC LIMIT ? OFFSET ?`;
   params.push(limit, offset);
 
   const [rows] = await pool.query(query, params);
   const [countRows] = await pool.query(countQuery, countParams);
 
+  const promotions = rows.map((row) => ({
+    ...row,
+    status: row.computed_status,
+  }));
+
   return {
-    promotions: rows,
+    promotions,
     total: countRows[0].total,
   };
 };
 
 const getPromotionByCode = async (code) => {
+  // 1️⃣ Update status trước
+  await pool.query(
+    `UPDATE promotion
+     SET status = CASE
+       WHEN NOW() < start_date THEN 'upcoming'
+       WHEN NOW() BETWEEN start_date AND end_date THEN 'active'
+       ELSE 'expired'
+     END
+     WHERE code = ?`,
+    [code]
+  );
+
+  // 2️⃣ Lấy promotion
   const [rows] = await pool.query(
     `SELECT * FROM promotion
      WHERE code = ?
-     AND is_active = TRUE
-     AND NOW() BETWEEN start_date AND end_date
+     AND status = 'active'
+     AND is_hidden = 0
      AND (usage_limit IS NULL OR used_count < usage_limit)`,
     [code]
   );
@@ -65,10 +115,20 @@ const createPromotion = async (data) => {
     usage_limit,
   } = data;
 
+  const now = new Date();
+
+  let status = "upcoming";
+
+  if (now >= new Date(start_date) && now <= new Date(end_date)) {
+    status = "active";
+  } else if (now > new Date(end_date)) {
+    status = "expired";
+  }
+
   const [result] = await pool.query(
     `INSERT INTO promotion 
-    (code, description, discount_type, discount_value, start_date, end_date, usage_limit)
-    VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    (code, description, discount_type, discount_value, start_date, end_date, usage_limit, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       code,
       description,
@@ -77,6 +137,7 @@ const createPromotion = async (data) => {
       start_date,
       end_date,
       usage_limit,
+      status,
     ]
   );
 
@@ -93,13 +154,28 @@ const updatePromotion = async (data) => {
     start_date,
     end_date,
     usage_limit,
-    is_active,
   } = data;
+
+  const now = new Date();
+
+  let status = "upcoming";
+
+  if (now >= new Date(start_date) && now <= new Date(end_date)) {
+    status = "active";
+  } else if (now > new Date(end_date)) {
+    status = "expired";
+  }
 
   const [result] = await pool.query(
     `UPDATE promotion
-     SET code = ?, description = ?, discount_type = ?, discount_value = ?,
-     start_date = ?, end_date = ?, usage_limit = ?, is_active = ?
+     SET code = ?, 
+         description = ?, 
+         discount_type = ?, 
+         discount_value = ?,
+         start_date = ?, 
+         end_date = ?, 
+         usage_limit = ?, 
+         status = ?
      WHERE id = ?`,
     [
       code,
@@ -109,7 +185,7 @@ const updatePromotion = async (data) => {
       start_date,
       end_date,
       usage_limit,
-      is_active,
+      status,
       id,
     ]
   );
