@@ -146,7 +146,8 @@ const getOrdersByUser = async (userId) => {
       oi.quantity,
       oi.unit_price,
       b.name AS book_name,
-      bi.image_url AS book_image
+      bi.image_url AS book_image,
+      oi.is_reviewed 
     FROM order_items oi
     JOIN books b ON oi.book_id = b.id
     LEFT JOIN book_images bi ON b.id = bi.book_id AND bi.is_main = 1

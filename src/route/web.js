@@ -17,6 +17,7 @@ import supplierController from "../controllers/supplierController";
 import importController from "../controllers/importController";
 import subCategoryController from "../controllers/subCategoryController";
 import systemController from "../controllers/systemController";
+import reviewController from "../controllers/reviewController";
 
 const router = express.Router();
 
@@ -194,6 +195,26 @@ const initWebRoutes = (app) => {
     promotionController.importPromotions
   );
 
+  // ===== REVIEW =====
+  router.post(
+    "/api/reviews",
+    upload.array("review", 50),
+    reviewController.createReview
+  );
+  router.delete(
+    "/api/reviews/:id",
+    authMiddleware,
+    reviewController.deleteReview
+  );
+  router.get("/api/reviews", reviewController.getAllReviews);
+  router.get("/api/reviews/book/:book_id", reviewController.getReviewsByBookId);
+  router.put(
+    "/api/reviews/:id/toggle-visibility",
+    reviewController.adminToggleReviewVisibility
+  );
+  router.put("/api/reviews/:id/delete", reviewController.adminDeleteReview);
+
+  // ===== ORDER =====
   router.post("/api/orders", authMiddleware, orderController.createOrder);
   router.get(
     "/api/orders/my-orders",
