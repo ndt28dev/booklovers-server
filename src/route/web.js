@@ -18,6 +18,7 @@ import importController from "../controllers/importController";
 import subCategoryController from "../controllers/subCategoryController";
 import systemController from "../controllers/systemController";
 import reviewController from "../controllers/reviewController";
+import orderStatisticalController from "../controllers/statistical/orderController";
 
 const router = express.Router();
 
@@ -241,10 +242,7 @@ const initWebRoutes = (app) => {
     "/api/admin/statisticsheader",
     statisticController.getStatisticsHeader
   );
-  router.get(
-    "/api/admin/statistics/monthly-revenue",
-    statisticController.getMonthlyRevenue
-  );
+
   router.get(
     "/api/admin/statistics/top-orders",
     statisticController.getTopOrders
@@ -262,6 +260,16 @@ const initWebRoutes = (app) => {
   router.put(
     "/api/admin/orders/update-status/:orderId",
     orderController.updateOrderStatus
+  );
+
+  // ------ Thống kê bán hàng ---------
+  router.get(
+    "/api/admin/statistics/revenue-overview",
+    orderStatisticalController.getRevenueStats
+  );
+  router.get(
+    "/api/admin/statistics/revenue-growth",
+    orderStatisticalController.getRevenueGrowth
   );
 
   app.use("/", router);

@@ -23,17 +23,6 @@ export const getStatisticsHeader = async (req, res) => {
   }
 };
 
-const getMonthlyRevenue = async (req, res) => {
-  try {
-    const year = parseInt(req.query.year) || new Date().getFullYear();
-    const data = await statisticService.getMonthlyRevenue(year);
-    res.json(data);
-  } catch (err) {
-    console.error("Error fetching monthly revenue:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
 const getTopOrders = async (req, res) => {
   try {
     const { startDate, endDate, sortType = "top" } = req.query;
@@ -100,7 +89,6 @@ const getOrderStatusByMonth = async (req, res) => {
 export default {
   getStatistics,
   getStatisticsHeader,
-  getMonthlyRevenue,
   getTopOrders,
   getTopBuyersByMonthYear,
   getOrderStatusByMonth,
