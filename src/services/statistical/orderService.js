@@ -168,7 +168,33 @@ const getRevenueGrowth = async (year) => {
   return chartData;
 };
 
+const getOrderStatusOverview = async (year) => {
+  const [rows] = await pool.query(
+    `
+      SELECT 
+        MONTH(order_date) AS month,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
+        SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) AS confirmed,
+        SUM(CASE WHEN status = 'shipping' THEN 1 ELSE 0 END) AS shipping,
+        SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) AS delivered,
+        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled,
+        SUM(CASE WHEN status = 'returned' THEN 1 ELSE 0 END) AS returned
+      FROM orders
+      WHERE YEAR(order_date) = ?
+      GROUP BY MONTH(order_date)
+      ORDER BY MONTH(order_date)
+      `,
+    [year]
+  );
+
+  return rows.map((row) => ({
+    ...row,
+    month: `Tháng ${row.month}`,
+  }));
+};
+
 export default {
   getRevenueStats,
   getRevenueGrowth,
+  getOrderStatusOverview,
 };

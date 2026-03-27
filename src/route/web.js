@@ -251,10 +251,6 @@ const initWebRoutes = (app) => {
     "/api/admin/statistics/top-buyers",
     statisticController.getTopBuyersByMonthYear
   );
-  router.get(
-    "/api/admin/statistics/month-status",
-    statisticController.getOrderStatusByMonth
-  );
 
   router.get("/api/admin/orders/all", orderController.getAllOrders);
   router.put(
@@ -270,6 +266,10 @@ const initWebRoutes = (app) => {
   router.get(
     "/api/admin/statistics/revenue-growth",
     orderStatisticalController.getRevenueGrowth
+  );
+  router.get(
+    "/api/admin/statistics/order-status-overview",
+    orderStatisticalController.getOrderStatusOverview
   );
 
   app.use("/", router);

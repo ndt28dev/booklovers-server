@@ -26,12 +26,32 @@ const getRevenueGrowth = async (req, res) => {
       data,
     });
   } catch (err) {
-    console.error("Error fetching monthly revenue:", err);
+    console.error("Error fetching:", err);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getOrderStatusOverview = async (req, res) => {
+  try {
+    const { year } = req.query;
+
+    if (!year) {
+      return res.status(400).json({ message: "Thiếu năm" });
+    }
+
+    const data = await orderService.getOrderStatusOverview(year);
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error("Lỗi thống kê:", error);
+    res.status(500).json({ message: "Lỗi server" });
   }
 };
 
 export default {
   getRevenueStats,
   getRevenueGrowth,
+  getOrderStatusOverview,
 };
