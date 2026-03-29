@@ -391,27 +391,44 @@ const getTodayDashboard = async () => {
   };
 };
 
-const getTopOrdersByYear = async (year) => {
+const getTopOrdersByYear = async (year, page = 1, limit = 5) => {
+  const offset = (page - 1) * limit;
+
+  const [[countResult]] = await pool.query(
+    `
+    SELECT COUNT(*) AS total
+    FROM orders o
+    WHERE YEAR(o.order_date) = ?
+      AND o.status = 'delivered'
+    `,
+    [year]
+  );
+
   const [rows] = await pool.query(
     `
     SELECT 
       o.id,
       o.total_price,
       o.order_date,
+      o.location,
+      o.payment_method,
+      o.order_code,
       u.id AS user_id,
-      u.fullname,
-      u.email
+      u.fullname
     FROM orders o
     JOIN users u ON u.id = o.user_id
     WHERE YEAR(o.order_date) = ?
       AND o.status = 'delivered'
     ORDER BY o.total_price DESC
-    LIMIT 10
+    LIMIT ? OFFSET ?
     `,
-    [year]
+    [year, Number(limit), Number(offset)]
   );
 
-  return rows;
+  return {
+    data: rows,
+    total: countResult.total,
+  };
 };
 
 export default {

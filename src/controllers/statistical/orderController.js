@@ -88,15 +88,19 @@ const getTodayDashboard = async (req, res) => {
 
 const getTopOrdersByYear = async (req, res) => {
   try {
-    const { year } = req.query;
+    const { year = new Date().getFullYear(), page = 1, limit = 10 } = req.query;
 
-    const data = await orderService.getTopOrdersByYear(
-      year || new Date().getFullYear()
-    );
+    const result = await orderService.getTopOrdersByYear(year, page, limit);
 
     return res.json({
       success: true,
-      data,
+      data: result.data,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total: result.total,
+        totalPages: Math.ceil(result.total / limit),
+      },
     });
   } catch (err) {
     console.error("getTopOrdersByYear error:", err);
