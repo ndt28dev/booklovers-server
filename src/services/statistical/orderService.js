@@ -2,13 +2,11 @@ import pool from "../../config/connectDB.js";
 
 const formatDate = (date) => date.toISOString().split("T")[0];
 
-// 👉 format dd/mm
 const formatVN = (date) =>
   `${String(date.getDate()).padStart(2, "0")}/${String(
     date.getMonth() + 1
   ).padStart(2, "0")}`;
 
-// 👉 format mm/yyyy
 const formatMonthYear = (date) =>
   `${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
 
@@ -140,7 +138,7 @@ const getRevenueStats = async () => {
     },
 
     year: {
-      label: `${year}`, // 👉 2026
+      label: `${year}`,
       current: yearCurrent[0].revenue || 0,
       previous: yearPrev[0].revenue || 0,
       growth: calcGrowth(yearCurrent[0].revenue || 0, yearPrev[0].revenue || 0),
@@ -151,36 +149,31 @@ const getRevenueStats = async () => {
 const getRevenueGrowth = async (year) => {
   const [monthlyRevenueRows] = await pool.query(
     `
-      SELECT MONTH(order_date) AS month, SUM(total_price) AS total
-      FROM orders
-      WHERE status = 'delivered' AND YEAR(order_date) = ?
-      GROUP BY MONTH(order_date)
-      ORDER BY MONTH(order_date)
-      `,
+    SELECT 
+      MONTH(order_date) AS month, 
+      SUM(total_price) AS total
+    FROM orders
+    WHERE status = 'delivered' 
+      AND YEAR(order_date) = ?
+    GROUP BY MONTH(order_date)
+    ORDER BY MONTH(order_date)
+    `,
     [year]
   );
+
   if (monthlyRevenueRows.length === 0) {
     return [];
   }
 
-  const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+  const chartData = Array.from({ length: 12 }, (_, index) => {
+    const month = index + 1;
 
-  const chartData = monthNames.map((month, index) => {
-    const found = monthlyRevenueRows.find((row) => row.month === index + 1);
-    return { name: month, value: found ? Number(found.total) : 0 };
+    const found = monthlyRevenueRows.find((row) => row.month === month);
+
+    return {
+      month,
+      value: found ? Number(found.total) : 0,
+    };
   });
 
   return chartData;
@@ -205,13 +198,11 @@ const getOrderStatusOverview = async (year) => {
     [year]
   );
 
-  // 👉 format tháng
   const monthly = rows.map((row) => ({
     ...row,
-    month: `Tháng ${row.month}`,
+    month: `${row.month}`,
   }));
 
-  // 👉 tính tổng
   const total = monthly.reduce(
     (acc, item) => {
       acc.pending += Number(item.pending || 0);
@@ -320,10 +311,9 @@ const getRevenueByCategoryService = async (year) => {
 };
 
 const getTodayDashboard = async () => {
-  // ===== TODAY =====
   const today = new Date();
   const formatDate = today.toISOString().split("T")[0]; // yyyy-mm-dd
-  const label = formatVN(today); // 👉 29/03
+  const label = formatVN(today); //
 
   // ===== OVERVIEW =====
   const [overviewRows] = await pool.query(
@@ -388,7 +378,7 @@ const getTodayDashboard = async () => {
 
   // ===== RETURN =====
   return {
-    date: label, // 👉 29/03
+    date: label,
 
     overview: {
       revenue,
