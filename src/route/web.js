@@ -294,6 +294,10 @@ const initWebRoutes = (app) => {
     "/api/admin/statistics/customer-clv",
     customerController.getCustomerCLV
   );
+  router.get(
+    "/api/admin/statistics/top-customers-by-year",
+    customerController.getTopCustomersByYear
+  );
 
   app.use("/", router);
 };

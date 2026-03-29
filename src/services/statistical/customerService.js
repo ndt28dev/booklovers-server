@@ -79,7 +79,43 @@ const getCustomerCLV = async () => {
   };
 };
 
+const getTopCustomersByYear = async (year, limit = 5) => {
+  const [rows] = await pool.query(
+    `
+      SELECT 
+      u.id AS user_id,
+      u.fullname,
+    
+      SUM(o.total_price) AS total_spent,
+      COUNT(o.id) AS total_orders,
+    
+      MAX(o.order_date) AS last_order_date,
+      MIN(o.order_date) AS first_order_date,
+    
+      SUM(o.total_price) / COUNT(o.id) AS avg_order_value,
+    
+      CASE 
+        WHEN SUM(o.total_price) > 1000000 THEN 'VIP'
+        WHEN SUM(o.total_price) > 500000 THEN 'LOYAL'
+        ELSE 'NEW'
+      END AS customer_type
+    
+      FROM orders o
+      JOIN users u ON u.id = o.user_id
+      WHERE YEAR(o.order_date) = ?
+        AND o.status = 'delivered'
+      GROUP BY u.id, u.fullname, u.email, u.phone
+      ORDER BY total_spent DESC
+      LIMIT ?
+    `,
+    [year, Number(limit)]
+  );
+
+  return rows;
+};
+
 export default {
   getCustomerOverview,
   getCustomerCLV,
+  getTopCustomersByYear,
 };

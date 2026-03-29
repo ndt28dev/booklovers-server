@@ -391,19 +391,7 @@ const getTodayDashboard = async () => {
   };
 };
 
-const getTopOrdersByYear = async (year, page = 1, limit = 5) => {
-  const offset = (page - 1) * limit;
-
-  const [[countResult]] = await pool.query(
-    `
-    SELECT COUNT(*) AS total
-    FROM orders o
-    WHERE YEAR(o.order_date) = ?
-      AND o.status = 'delivered'
-    `,
-    [year]
-  );
-
+const getTopOrdersByYear = async (year, limit = 5) => {
   const [rows] = await pool.query(
     `
     SELECT 
@@ -420,15 +408,12 @@ const getTopOrdersByYear = async (year, page = 1, limit = 5) => {
     WHERE YEAR(o.order_date) = ?
       AND o.status = 'delivered'
     ORDER BY o.total_price DESC
-    LIMIT ? OFFSET ?
+    LIMIT ?
     `,
-    [year, Number(limit), Number(offset)]
+    [year, Number(limit)]
   );
 
-  return {
-    data: rows,
-    total: countResult.total,
-  };
+  return rows;
 };
 
 export default {

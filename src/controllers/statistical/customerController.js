@@ -34,7 +34,30 @@ const getCustomerCLV = async (req, res) => {
   }
 };
 
+const getTopCustomersByYear = async (req, res) => {
+  try {
+    const { year, limit = 5 } = req.query;
+
+    const data = await customerService.getTopCustomersByYear(
+      year || new Date().getFullYear(),
+      limit
+    );
+
+    return res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error("getTopCustomersByYear error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 export default {
   getCustomerOverview,
   getCustomerCLV,
+  getTopCustomersByYear,
 };
