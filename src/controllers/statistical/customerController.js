@@ -17,6 +17,24 @@ const getCustomerOverview = async (req, res) => {
   }
 };
 
+const getCustomerCLV = async (req, res) => {
+  try {
+    const data = await customerService.getCustomerCLV();
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    console.error("❌ getCustomerCLV error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 export default {
   getCustomerOverview,
+  getCustomerCLV,
 };

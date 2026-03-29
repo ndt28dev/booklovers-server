@@ -286,6 +286,10 @@ const initWebRoutes = (app) => {
     "/api/admin/statistics/customer-overview",
     customerController.getCustomerOverview
   );
+  router.get(
+    "/api/admin/statistics/customer-clv",
+    customerController.getCustomerCLV
+  );
 
   app.use("/", router);
 };
