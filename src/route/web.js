@@ -280,6 +280,10 @@ const initWebRoutes = (app) => {
     "/api/admin/statistics/revenue-of-the-day",
     orderStatisticalController.getTodayDashboard
   );
+  router.get(
+    "/api/admin/statistics/top-orders-by-year",
+    orderStatisticalController.getTopOrdersByYear
+  );
 
   // ---- thống kê khách hàng ----
   router.get(

@@ -86,10 +86,32 @@ const getTodayDashboard = async (req, res) => {
   }
 };
 
+const getTopOrdersByYear = async (req, res) => {
+  try {
+    const { year } = req.query;
+
+    const data = await orderService.getTopOrdersByYear(
+      year || new Date().getFullYear()
+    );
+
+    return res.json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    console.error("getTopOrdersByYear error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 export default {
   getRevenueStats,
   getRevenueGrowth,
   getOrderStatusOverview,
   getRevenueByCategory,
   getTodayDashboard,
+  getTopOrdersByYear,
 };

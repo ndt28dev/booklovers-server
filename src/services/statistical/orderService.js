@@ -391,6 +391,29 @@ const getTodayDashboard = async () => {
   };
 };
 
+const getTopOrdersByYear = async (year) => {
+  const [rows] = await pool.query(
+    `
+    SELECT 
+      o.id,
+      o.total_price,
+      o.order_date,
+      u.id AS user_id,
+      u.fullname,
+      u.email
+    FROM orders o
+    JOIN users u ON u.id = o.user_id
+    WHERE YEAR(o.order_date) = ?
+      AND o.status = 'delivered'
+    ORDER BY o.total_price DESC
+    LIMIT 10
+    `,
+    [year]
+  );
+
+  return rows;
+};
+
 export default {
   getRevenueStats,
   getRevenueGrowth,
@@ -398,4 +421,5 @@ export default {
   getRevenueByCategory,
   getRevenueByCategoryService,
   getTodayDashboard,
+  getTopOrdersByYear,
 };
