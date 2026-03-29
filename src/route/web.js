@@ -19,6 +19,7 @@ import subCategoryController from "../controllers/subCategoryController";
 import systemController from "../controllers/systemController";
 import reviewController from "../controllers/reviewController";
 import orderStatisticalController from "../controllers/statistical/orderController";
+import customerController from "../controllers/statistical/customerController";
 
 const router = express.Router();
 
@@ -278,6 +279,12 @@ const initWebRoutes = (app) => {
   router.get(
     "/api/admin/statistics/revenue-of-the-day",
     orderStatisticalController.getTodayDashboard
+  );
+
+  // ---- thống kê khách hàng ----
+  router.get(
+    "/api/admin/statistics/customer-overview",
+    customerController.getCustomerOverview
   );
 
   app.use("/", router);
