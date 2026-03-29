@@ -92,7 +92,7 @@ const getTopCustomersByYear = async (year, limit = 5) => {
       MAX(o.order_date) AS last_order_date,
       MIN(o.order_date) AS first_order_date,
     
-      SUM(o.total_price) / COUNT(o.id) AS avg_order_value,
+      ROUND(SUM(o.total_price) / COUNT(o.id), 0) AS avg_order_value,
     
       CASE 
         WHEN SUM(o.total_price) > 1000000 THEN 'VIP'
