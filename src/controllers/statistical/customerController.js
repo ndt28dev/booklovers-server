@@ -56,8 +56,28 @@ const getTopCustomersByYear = async (req, res) => {
   }
 };
 
+const getCustomerPurchaseByHourInYear = async (req, res) => {
+  try {
+    const { year = new Date().getFullYear() } = req.query;
+
+    const data = await customerService.getCustomerPurchaseByHourInYear(year);
+
+    return res.json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    console.error("getCustomerPurchaseByHourInYear error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 export default {
   getCustomerOverview,
   getCustomerCLV,
   getTopCustomersByYear,
+  getCustomerPurchaseByHourInYear,
 };

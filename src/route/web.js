@@ -298,6 +298,10 @@ const initWebRoutes = (app) => {
     "/api/admin/statistics/top-customers-by-year",
     customerController.getTopCustomersByYear
   );
+  router.get(
+    "/api/admin/statistics/customer-by-hour",
+    customerController.getCustomerPurchaseByHourInYear
+  );
 
   app.use("/", router);
 };

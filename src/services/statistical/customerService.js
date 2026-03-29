@@ -114,8 +114,39 @@ const getTopCustomersByYear = async (year, limit = 5) => {
   return rows;
 };
 
+const getCustomerPurchaseByHourInYear = async (year) => {
+  const [rows] = await pool.query(
+    `
+    SELECT 
+      HOUR(o.order_date) AS hour,
+      COUNT(o.id) AS total_orders,
+      SUM(o.total_price) AS total_revenue,
+      COUNT(DISTINCT o.user_id) AS total_customers
+    FROM orders o
+    WHERE YEAR(o.order_date) = ?
+      AND o.status = 'delivered'
+    GROUP BY HOUR(o.order_date)
+    ORDER BY hour ASC
+    `,
+    [year]
+  );
+
+  const result = Array.from({ length: 24 }, (_, i) => {
+    const found = rows.find((r) => r.hour === i);
+    return {
+      hour: i,
+      total_orders: found?.total_orders || 0,
+      total_revenue: found?.total_revenue || 0,
+      total_customers: found?.total_customers || 0,
+    };
+  });
+
+  return result;
+};
+
 export default {
   getCustomerOverview,
   getCustomerCLV,
   getTopCustomersByYear,
+  getCustomerPurchaseByHourInYear,
 };
