@@ -271,6 +271,10 @@ const initWebRoutes = (app) => {
     "/api/admin/statistics/order-status-overview",
     orderStatisticalController.getOrderStatusOverview
   );
+  router.get(
+    "/api/admin/statistics/revenue-by-category",
+    orderStatisticalController.getRevenueByCategory
+  );
 
   app.use("/", router);
 };

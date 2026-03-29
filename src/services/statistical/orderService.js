@@ -46,17 +46,32 @@ const getRevenueStats = async () => {
 
   const prevMonthDate = new Date(year, month - 2, 1);
 
+  // ===== QUARTER =====
+  const quarter = Math.floor((month - 1) / 3) + 1;
+  const startMonth = (quarter - 1) * 3 + 1;
+  const endMonth = startMonth + 2;
+
   // ===== QUERY =====
-  const [dayCurrent] = await pool.query(
+  const [quarterCurrent] = await pool.query(
     `SELECT SUM(total_price) as revenue FROM orders 
-     WHERE DATE(order_date)=? AND status='delivered'`,
-    [formatDate(today)]
+     WHERE MONTH(order_date) BETWEEN ? AND ? 
+     AND YEAR(order_date)=? 
+     AND status='delivered'`,
+    [startMonth, endMonth, year]
   );
 
-  const [dayPrev] = await pool.query(
+  const prevQuarter = quarter === 1 ? 4 : quarter - 1;
+  const prevYear = quarter === 1 ? year - 1 : year;
+
+  const prevStartMonth = (prevQuarter - 1) * 3 + 1;
+  const prevEndMonth = prevStartMonth + 2;
+
+  const [quarterPrev] = await pool.query(
     `SELECT SUM(total_price) as revenue FROM orders 
-     WHERE DATE(order_date)=? AND status='delivered'`,
-    [formatDate(yesterday)]
+   WHERE MONTH(order_date) BETWEEN ? AND ? 
+   AND YEAR(order_date)=? 
+   AND status='delivered'`,
+    [prevStartMonth, prevEndMonth, prevYear]
   );
 
   const [weekCurrent] = await pool.query(
@@ -97,11 +112,14 @@ const getRevenueStats = async () => {
 
   // ===== RETURN =====
   return {
-    day: {
-      label: formatVN(today), // 👉 27/03
-      current: dayCurrent[0].revenue || 0,
-      previous: dayPrev[0].revenue || 0,
-      growth: calcGrowth(dayCurrent[0].revenue || 0, dayPrev[0].revenue || 0),
+    quarter: {
+      label: `Q${quarter}/${year}`,
+      current: quarterCurrent[0].revenue || 0,
+      previous: quarterPrev[0].revenue || 0,
+      growth: calcGrowth(
+        quarterCurrent[0].revenue || 0,
+        quarterPrev[0].revenue || 0
+      ),
     },
 
     week: {
@@ -220,8 +238,91 @@ const getOrderStatusOverview = async (year) => {
   };
 };
 
+const getRevenueByCategory = async (year) => {
+  const query = `
+        SELECT 
+        c.id AS category_id,
+        c.name AS category_name,
+        MONTH(o.order_date) AS month,
+        COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS revenue,
+        COALESCE(SUM(oi.quantity), 0) AS total_sold,
+        COUNT(DISTINCT o.id) AS total_orders
+
+        FROM categories c
+        LEFT JOIN books b 
+        ON b.category_id = c.id
+
+        LEFT JOIN order_items oi 
+        ON oi.book_id = b.id
+
+        LEFT JOIN orders o 
+        ON oi.order_id = o.id 
+        AND o.status = 'delivered'
+        AND YEAR(o.order_date) = ?
+
+        WHERE c.is_hidden = 0
+
+        GROUP BY c.id, c.name, MONTH(o.order_date)
+        ORDER BY c.id, month;
+    `;
+
+  const [rows] = await pool.query(query, [year]);
+  return rows;
+};
+
+const getRevenueByCategoryService = async (year) => {
+  const rows = await getRevenueByCategory(year);
+
+  const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
+
+  const map = {};
+
+  for (const row of rows) {
+    const id = row.category_id;
+
+    if (!map[id]) {
+      map[id] = {
+        category_id: row.category_id,
+        category_name: row.category_name,
+
+        total_revenue: 0,
+        total_sold: 0,
+        total_orders: 0,
+
+        months: MONTHS.map((m) => ({
+          month: m,
+          revenue: 0,
+          total_sold: 0,
+          total_orders: 0,
+        })),
+      };
+    }
+
+    // bỏ row null month (cái bạn đang bị rác dữ liệu)
+    if (!row.month) continue;
+
+    const idx = row.month - 1;
+
+    map[id].months[idx] = {
+      month: row.month,
+      revenue: Number(row.revenue || 0),
+      total_sold: Number(row.total_sold || 0),
+      total_orders: Number(row.total_orders || 0),
+    };
+
+    // cộng tổng
+    map[id].total_revenue += Number(row.revenue || 0);
+    map[id].total_sold += Number(row.total_sold || 0);
+    map[id].total_orders += Number(row.total_orders || 0);
+  }
+
+  return Object.values(map);
+};
+
 export default {
   getRevenueStats,
   getRevenueGrowth,
   getOrderStatusOverview,
+  getRevenueByCategory,
+  getRevenueByCategoryService,
 };

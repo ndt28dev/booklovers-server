@@ -50,8 +50,28 @@ const getOrderStatusOverview = async (req, res) => {
   }
 };
 
+const getRevenueByCategory = async (req, res) => {
+  try {
+    const { year } = req.query;
+
+    const data = await orderService.getRevenueByCategoryService(year);
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error("Error getRevenueByCategory:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 export default {
   getRevenueStats,
   getRevenueGrowth,
   getOrderStatusOverview,
+  getRevenueByCategory,
 };
