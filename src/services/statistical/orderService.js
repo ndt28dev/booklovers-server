@@ -319,10 +319,93 @@ const getRevenueByCategoryService = async (year) => {
   return Object.values(map);
 };
 
+const getTodayDashboard = async () => {
+  // ===== TODAY =====
+  const today = new Date();
+  const formatDate = today.toISOString().split("T")[0]; // yyyy-mm-dd
+  const label = formatVN(today); // 👉 29/03
+
+  // ===== OVERVIEW =====
+  const [overviewRows] = await pool.query(
+    `
+    SELECT 
+      COALESCE(SUM(total_price),0) as revenue,
+      COUNT(*) as orders
+    FROM orders
+    WHERE DATE(order_date) = ?
+    AND status = 'delivered'
+    `,
+    [formatDate]
+  );
+
+  const [productRows] = await pool.query(
+    `
+    SELECT COALESCE(SUM(oi.quantity),0) as products
+    FROM order_items oi
+    JOIN orders o ON o.id = oi.order_id
+    WHERE DATE(o.order_date) = ?
+    AND o.status = 'delivered'
+    `,
+    [formatDate]
+  );
+
+  const revenue = overviewRows[0]?.revenue || 0;
+  const orders = overviewRows[0]?.orders || 0;
+  const products = productRows[0]?.products || 0;
+
+  const aov = orders > 0 ? Math.round(revenue / orders) : 0;
+
+  // ===== STATUS =====
+  const [statusRows] = await pool.query(
+    `
+    SELECT 
+      status,
+      COUNT(*) as value
+    FROM orders
+    WHERE DATE(order_date) = ?
+    GROUP BY status
+    `,
+    [formatDate]
+  );
+
+  const statusMap = {
+    pending: "Đang chờ xử lý",
+    confirmed: "Đã xác nhận",
+    shipping: "Đang giao hàng",
+    delivered: "Đã giao hàng",
+    cancelled: "Đã huỷ",
+    returned: "Đã trả hàng",
+  };
+
+  const statusData = Object.keys(statusMap).map((key) => {
+    const found = statusRows.find((s) => s.status === key);
+
+    return {
+      name: statusMap[key],
+      value: found ? found.value : 0,
+    };
+  });
+
+  // ===== RETURN =====
+  return {
+    date: label, // 👉 29/03
+
+    overview: {
+      revenue,
+      orders,
+      products,
+      aov,
+    },
+
+    status: statusData,
+  };
+};
+
 export default {
   getRevenueStats,
   getRevenueGrowth,
   getOrderStatusOverview,
   getRevenueByCategory,
   getRevenueByCategoryService,
+  getTodayDashboard,
 };

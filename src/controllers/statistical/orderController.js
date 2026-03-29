@@ -69,9 +69,27 @@ const getRevenueByCategory = async (req, res) => {
   }
 };
 
+const getTodayDashboard = async (req, res) => {
+  try {
+    const data = await orderService.getTodayDashboard();
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+    });
+  }
+};
+
 export default {
   getRevenueStats,
   getRevenueGrowth,
   getOrderStatusOverview,
   getRevenueByCategory,
+  getTodayDashboard,
 };

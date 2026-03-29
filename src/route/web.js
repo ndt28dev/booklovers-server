@@ -275,6 +275,10 @@ const initWebRoutes = (app) => {
     "/api/admin/statistics/revenue-by-category",
     orderStatisticalController.getRevenueByCategory
   );
+  router.get(
+    "/api/admin/statistics/revenue-of-the-day",
+    orderStatisticalController.getTodayDashboard
+  );
 
   app.use("/", router);
 };
