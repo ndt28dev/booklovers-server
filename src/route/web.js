@@ -21,6 +21,7 @@ import reviewController from "../controllers/reviewController";
 import orderStatisticalController from "../controllers/statistical/orderController";
 import customerController from "../controllers/statistical/customerController";
 import productsImportsController from "../controllers/statistical/productsImportsController";
+import reviewsContactsController from "../controllers/statistical/reviewsContactsController";
 
 const router = express.Router();
 
@@ -320,6 +321,12 @@ const initWebRoutes = (app) => {
   router.get(
     "/api/admin/statistics/best-worst-books",
     productsImportsController.getBestAndWorstSellingBooks
+  );
+
+  // ---- thống kê đánh giá và phản hồi
+  router.get(
+    "/api/admin/statistics/contact-overview",
+    reviewsContactsController.getFeedbackStats
   );
 
   app.use("/", router);
