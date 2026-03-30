@@ -313,6 +313,10 @@ const initWebRoutes = (app) => {
     "/api/admin/statistics/stock-warnings",
     productsImportsController.getStockWarnings
   );
+  router.get(
+    "/api/admin/statistics/import-overview",
+    productsImportsController.getImportOverview
+  );
 
   app.use("/", router);
 };

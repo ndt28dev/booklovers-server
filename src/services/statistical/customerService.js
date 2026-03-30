@@ -3,31 +3,36 @@ import pool from "../../config/connectDB.js";
 const getCustomerOverview = async () => {
   // Tổng khách
   const [[totalCustomers]] = await pool.query(`
-    SELECT COUNT(*) AS total FROM users
+    SELECT COUNT(*) AS total FROM users WHERE is_hidden = 0
   `);
 
   //  Khách mới (30 ngày)
   const [[newCustomers]] = await pool.query(`
     SELECT COUNT(*) AS total 
     FROM users
-    WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    WHERE is_hidden = 0
+    AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
   `);
 
   //  Khách quay lại (>= 2 đơn)
   const [[returningCustomers]] = await pool.query(`
     SELECT COUNT(*) AS total FROM (
-      SELECT user_id
-      FROM orders
-      GROUP BY user_id
+      SELECT o.user_id
+      FROM orders o
+      JOIN users u ON u.id = o.user_id
+      WHERE u.is_hidden = 0
+      GROUP BY o.user_id
       HAVING COUNT(*) >= 2
     ) t
   `);
 
   //  AOV
   const [[aov]] = await pool.query(`
-    SELECT 
+      SELECT 
       IFNULL(SUM(total_price) / COUNT(*), 0) AS value
-    FROM orders
+      FROM orders o
+      JOIN users u ON u.id = o.user_id
+      WHERE u.is_hidden = 0
   `);
 
   return {
@@ -43,9 +48,11 @@ const getCustomerCLV = async () => {
   const [[avgCLV]] = await pool.query(`
       SELECT IFNULL(AVG(total_spent), 0) AS value
       FROM (
-        SELECT user_id, SUM(total_price) AS total_spent
-        FROM orders
-        GROUP BY user_id
+        SELECT o.user_id, SUM(o.total_price) AS total_spent
+        FROM orders o
+        JOIN users u ON u.id = o.user_id
+        WHERE u.is_hidden = 0
+        GROUP BY o.user_id
       ) t
     `);
 
@@ -54,6 +61,7 @@ const getCustomerCLV = async () => {
       SELECT u.fullname, SUM(o.total_price) AS total_spent
       FROM orders o
       JOIN users u ON u.id = o.user_id
+      WHERE u.is_hidden = 0
       GROUP BY o.user_id
       ORDER BY total_spent DESC
       LIMIT 1
@@ -64,6 +72,7 @@ const getCustomerCLV = async () => {
       SELECT u.fullname, o.total_price
       FROM orders o
       JOIN users u ON u.id = o.user_id
+      WHERE u.is_hidden = 0
       ORDER BY o.total_price DESC
       LIMIT 2
     `);

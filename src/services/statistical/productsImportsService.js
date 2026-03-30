@@ -68,7 +68,37 @@ const getStockWarnings = async () => {
   return summary;
 };
 
+const getImportOverview = async () => {
+  const [[orders]] = await pool.query(`
+      SELECT COUNT(*) AS total_import_details
+      FROM imports
+    `);
+
+  const [[revenue]] = await pool.query(`
+      SELECT COALESCE(SUM(total_amount), 0) AS total_import_revenue
+      FROM imports
+    `);
+
+  const [[books]] = await pool.query(`
+      SELECT COALESCE(SUM(quantity), 0) AS total_import_books
+      FROM import_details
+    `);
+
+  const [[suppliers]] = await pool.query(`
+      SELECT COUNT(*) AS total_suppliers 
+      FROM suppliers WHERE is_hidden = 0
+    `);
+
+  return {
+    total_import_details: orders.total_import_details,
+    total_import_revenue: revenue.total_import_revenue,
+    total_import_books: books.total_import_books,
+    total_suppliers: suppliers.total_suppliers,
+  };
+};
+
 export default {
   getProductsOverview,
   getStockWarnings,
+  getImportOverview,
 };
