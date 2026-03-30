@@ -332,6 +332,10 @@ const initWebRoutes = (app) => {
     "/api/admin/statistics/review-overview",
     reviewsContactsController.getReviewOverview
   );
+  router.get(
+    "/api/admin/statistics/top-books-reviews",
+    reviewsContactsController.getTopBooksMostReviews
+  );
 
   app.use("/", router);
 };
