@@ -18,6 +18,24 @@ const getProductsOverview = async (req, res) => {
   }
 };
 
+const getStockWarnings = async (req, res) => {
+  try {
+    const data = await productsImportsService.getStockWarnings();
+
+    return res.status(200).json({
+      success: true,
+      data: data,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+    });
+  }
+};
+
 export default {
   getProductsOverview,
+  getStockWarnings,
 };

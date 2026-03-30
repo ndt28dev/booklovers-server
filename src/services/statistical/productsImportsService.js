@@ -34,6 +34,41 @@ const getProductsOverview = async () => {
   return rows[0];
 };
 
+const getStockWarnings = async () => {
+  const [rows] = await pool.query(`
+      SELECT 
+        b.id,
+        b.name,
+        b.quantity,
+        b.price
+      FROM books b
+    `);
+
+  const summary = {
+    in_stock: 0,
+    low_stock: 0,
+    critical_stock: 0,
+    out_of_stock: 0,
+  };
+
+  rows.forEach((book) => {
+    const quantity = Number(book.quantity || 0);
+
+    if (quantity === 0) {
+      summary.out_of_stock++;
+    } else if (quantity <= 3) {
+      summary.critical_stock++;
+    } else if (quantity < 10) {
+      summary.low_stock++;
+    } else {
+      summary.in_stock++;
+    }
+  });
+
+  return summary;
+};
+
 export default {
   getProductsOverview,
+  getStockWarnings,
 };

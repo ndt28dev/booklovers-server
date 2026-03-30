@@ -300,7 +300,7 @@ const initWebRoutes = (app) => {
     customerController.getTopCustomersByYear
   );
   router.get(
-    "//admin/statistics/customer-by-hour",
+    "/api/admin/statistics/customer-by-hour",
     customerController.getCustomerPurchaseByHourInYear
   );
 
@@ -308,6 +308,10 @@ const initWebRoutes = (app) => {
   router.get(
     "/api/admin/statistics/products-overview",
     productsImportsController.getProductsOverview
+  );
+  router.get(
+    "/api/admin/statistics/stock-warnings",
+    productsImportsController.getStockWarnings
   );
 
   app.use("/", router);
