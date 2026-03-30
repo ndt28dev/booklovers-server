@@ -50,18 +50,24 @@ const getTopBooksMostReviews = async (limit = 5, year) => {
       SELECT 
         b.id,
         b.name,
-        b.price,
-        c.name AS category_name,
-        sc.name AS subcategory_name,
-        COUNT(r.id) AS total_reviews
+  
+        COUNT(r.id) AS total_reviews,
+  
+        SUM(CASE WHEN r.rating = 5 THEN 1 ELSE 0 END) AS star_5,
+        SUM(CASE WHEN r.rating = 4 THEN 1 ELSE 0 END) AS star_4,
+        SUM(CASE WHEN r.rating = 3 THEN 1 ELSE 0 END) AS star_3,
+        SUM(CASE WHEN r.rating = 2 THEN 1 ELSE 0 END) AS star_2,
+        SUM(CASE WHEN r.rating = 1 THEN 1 ELSE 0 END) AS star_1
+  
       FROM books b
-      LEFT JOIN categories c ON c.id = b.category_id
-      LEFT JOIN subcategories sc ON sc.id = b.subcategory_id
+  
       LEFT JOIN reviews r 
         ON r.product_id = b.id 
         AND r.is_hidden = 0
+  
       WHERE (? IS NULL OR YEAR(r.created_at) = ?)
-      GROUP BY b.id, c.name, sc.name
+  
+      GROUP BY b.id, b.name
       ORDER BY total_reviews DESC
       LIMIT ?
       `,
