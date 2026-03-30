@@ -54,10 +54,13 @@ const getImportOverview = async (req, res) => {
 
 const getBestAndWorstSellingBooks = async (req, res) => {
   try {
-    const data = await productsImportsService.getBestAndWorstSellingBooks();
+    const year = req.query.year || new Date().getFullYear();
+
+    const data = await productsImportsService.getBestAndWorstSellingBooks(year);
 
     return res.status(200).json({
       success: true,
+      year,
       data,
     });
   } catch (error) {

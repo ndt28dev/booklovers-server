@@ -98,8 +98,9 @@ const getImportOverview = async () => {
   };
 };
 
-const getBestAndWorstSellingBooks = async () => {
-  const [rows] = await pool.query(`
+const getBestAndWorstSellingBooks = async (year) => {
+  const [rows] = await pool.query(
+    `
       SELECT 
         b.id,
         b.name,
@@ -108,9 +109,14 @@ const getBestAndWorstSellingBooks = async () => {
       FROM books b
       LEFT JOIN order_items oi 
         ON oi.book_id = b.id
+      LEFT JOIN orders o
+        ON o.id = oi.order_id
       WHERE b.is_hidden = 0
+        AND YEAR(o.order_date) = ?
       GROUP BY b.id, b.name, b.price
-    `);
+      `,
+    [year]
+  );
 
   const sorted = rows.sort((a, b) => b.sold_quantity - a.sold_quantity);
 
