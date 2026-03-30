@@ -336,6 +336,10 @@ const initWebRoutes = (app) => {
     "/api/admin/statistics/top-books-reviews",
     reviewsContactsController.getTopBooksMostReviews
   );
+  router.get(
+    "/api/admin/statistics/top-books-rating",
+    reviewsContactsController.getTopBooksHighestRating
+  );
 
   app.use("/", router);
 };
