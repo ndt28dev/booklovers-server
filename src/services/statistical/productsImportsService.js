@@ -42,6 +42,7 @@ const getStockWarnings = async () => {
         b.quantity,
         b.price
       FROM books b
+      WHERE b.is_hidden = 0
     `);
 
   const summary = {
