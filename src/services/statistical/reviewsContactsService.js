@@ -47,23 +47,23 @@ const getReviewOverview = async () => {
 const getTopBooksMostReviews = async (limit = 5, year) => {
   const [rows] = await pool.query(
     `
-        SELECT 
-          b.id,
-          b.name,
-          b.price,
-          c.name AS category_name,
-          sc.name AS subcategory_name,
-          COUNT(r.id) AS total_reviews
-        FROM books b
-        LEFT JOIN categories c ON c.id = b.category_id
-        LEFT JOIN subcategories sc ON sc.id = b.subcategory_id
-        LEFT JOIN reviews r 
-          ON r.product_id = b.id 
-          AND r.is_hidden = 0
-          AND (? IS NULL OR YEAR(r.created_at) = ?)
-        GROUP BY b.id, c.name, sc.name
-        ORDER BY total_reviews DESC
-        LIMIT ?
+      SELECT 
+        b.id,
+        b.name,
+        b.price,
+        c.name AS category_name,
+        sc.name AS subcategory_name,
+        COUNT(r.id) AS total_reviews
+      FROM books b
+      LEFT JOIN categories c ON c.id = b.category_id
+      LEFT JOIN subcategories sc ON sc.id = b.subcategory_id
+      LEFT JOIN reviews r 
+        ON r.product_id = b.id 
+        AND r.is_hidden = 0
+      WHERE (? IS NULL OR YEAR(r.created_at) = ?)
+      GROUP BY b.id, c.name, sc.name
+      ORDER BY total_reviews DESC
+      LIMIT ?
       `,
     [year || null, year || null, Number(limit)]
   );
