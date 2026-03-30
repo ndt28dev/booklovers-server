@@ -79,9 +79,32 @@ const getTopBooksHighestRating = async (req, res) => {
   }
 };
 
+const getTopBooksLowestRating = async (req, res) => {
+  try {
+    const { limit, year } = req.query;
+
+    const data = await reviewsContactsService.getTopBooksLowestRating(
+      limit || 5,
+      year || null
+    );
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+    });
+  }
+};
+
 export default {
   getContactsOverview,
   getReviewOverview,
   getTopBooksMostReviews,
   getTopBooksHighestRating,
+  getTopBooksLowestRating,
 };
