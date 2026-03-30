@@ -326,7 +326,11 @@ const initWebRoutes = (app) => {
   // ---- thống kê đánh giá và phản hồi
   router.get(
     "/api/admin/statistics/contact-overview",
-    reviewsContactsController.getFeedbackStats
+    reviewsContactsController.getContactsOverview
+  );
+  router.get(
+    "/api/admin/statistics/review-overview",
+    reviewsContactsController.getReviewOverview
   );
 
   app.use("/", router);
