@@ -317,6 +317,10 @@ const initWebRoutes = (app) => {
     "/api/admin/statistics/import-overview",
     productsImportsController.getImportOverview
   );
+  router.get(
+    "/api/admin/statistics/best-worst-books",
+    productsImportsController.getBestAndWorstSellingBooks
+  );
 
   app.use("/", router);
 };

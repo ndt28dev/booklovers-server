@@ -98,8 +98,34 @@ const getImportOverview = async () => {
   };
 };
 
+const getBestAndWorstSellingBooks = async () => {
+  const [rows] = await pool.query(`
+      SELECT 
+        b.id,
+        b.name,
+        b.price,
+        COALESCE(SUM(oi.quantity), 0) AS sold_quantity
+      FROM books b
+      LEFT JOIN order_items oi 
+        ON oi.book_id = b.id
+      WHERE b.is_hidden = 0
+      GROUP BY b.id, b.name, b.price
+    `);
+
+  const sorted = rows.sort((a, b) => b.sold_quantity - a.sold_quantity);
+
+  return {
+    bestSelling: sorted.slice(0, 10),
+    worstSelling: sorted
+      .slice()
+      .sort((a, b) => a.sold_quantity - b.sold_quantity)
+      .slice(0, 10),
+  };
+};
+
 export default {
   getProductsOverview,
   getStockWarnings,
   getImportOverview,
+  getBestAndWorstSellingBooks,
 };
