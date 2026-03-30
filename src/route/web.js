@@ -20,6 +20,7 @@ import systemController from "../controllers/systemController";
 import reviewController from "../controllers/reviewController";
 import orderStatisticalController from "../controllers/statistical/orderController";
 import customerController from "../controllers/statistical/customerController";
+import productsImportsController from "../controllers/statistical/productsImportsController";
 
 const router = express.Router();
 
@@ -299,8 +300,14 @@ const initWebRoutes = (app) => {
     customerController.getTopCustomersByYear
   );
   router.get(
-    "/api/admin/statistics/customer-by-hour",
+    "//admin/statistics/customer-by-hour",
     customerController.getCustomerPurchaseByHourInYear
+  );
+
+  // ---- thống kê sản phẩm và nhập hàng ----
+  router.get(
+    "/api/admin/statistics/products-overview",
+    productsImportsController.getProductsOverview
   );
 
   app.use("/", router);
