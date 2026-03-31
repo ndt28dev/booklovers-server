@@ -22,6 +22,7 @@ import orderStatisticalController from "../controllers/statistical/orderControll
 import customerController from "../controllers/statistical/customerController";
 import productsImportsController from "../controllers/statistical/productsImportsController";
 import reviewsContactsController from "../controllers/statistical/reviewsContactsController";
+import messageController from "../controllers/messageController";
 
 const router = express.Router();
 
@@ -343,6 +344,14 @@ const initWebRoutes = (app) => {
   router.get(
     "/api/admin/statistics/top-books-worst-rating",
     reviewsContactsController.getTopBooksLowestRating
+  );
+
+  // ----  tin nhắn -----
+  // router.get("/messages", messageController.getUsersChat);
+  router.get("/api/admin/chat-users", messageController.getUsersChat);
+  router.get(
+    "/api/admin/messages/:userId",
+    messageController.getMessagesByUser
   );
 
   app.use("/", router);
