@@ -370,11 +370,15 @@ const initWebRoutes = (app) => {
 
   // ---- chat options ----
   router.get("/api/admin/chat-options", chatOptionController.getOptions);
-
-  // lấy câu trả lời theo id
   router.get(
     "/api/admin/chat-options/answer/:id",
     chatOptionController.getAnswer
+  );
+  router.post("/api/admin/chat-options", chatOptionController.createOption);
+  router.put("/api/admin/chat-options/:id", chatOptionController.updateOption);
+  router.delete(
+    "/api/admin/chat-options/:id",
+    chatOptionController.deleteOption
   );
 
   // --- chat category
@@ -382,8 +386,6 @@ const initWebRoutes = (app) => {
     "/api/admin/chat-categories",
     chatCategoryController.getAllCategories
   );
-
-  // POST create
   router.get(
     "/api/admin/chat-categories",
     chatCategoryController.getAllCategories
@@ -392,14 +394,10 @@ const initWebRoutes = (app) => {
     "/api/admin/chat-categories",
     chatCategoryController.createCategory
   );
-
-  // PUT update
   router.put(
     "/api/admin/chat-categories/:id",
     chatCategoryController.updateCategory
   );
-
-  // DELETE
   router.delete(
     "/api/admin/chat-categories/:id",
     chatCategoryController.deleteCategory

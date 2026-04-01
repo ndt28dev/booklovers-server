@@ -1,5 +1,6 @@
-import chatOptionService from "../services/chatOptionService";
+import chatOptionService from "../services/chatOptionService.js";
 
+// GET LIST
 const getOptions = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -18,14 +19,11 @@ const getOptions = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
+// GET ANSWER
 const getAnswer = async (req, res) => {
   try {
     const { id } = req.params;
@@ -39,20 +37,74 @@ const getAnswer = async (req, res) => {
       });
     }
 
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// CREATE
+const createOption = async (req, res) => {
+  try {
+    const { question, answer, category_id } = req.body;
+
+    if (!question || !answer || !category_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu dữ liệu",
+      });
+    }
+
+    const data = await chatOptionService.createOption({
+      question,
+      answer,
+      category_id,
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// UPDATE
+const updateOption = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { question, answer, category_id } = req.body;
+
+    const data = await chatOptionService.updateOption(id, {
+      question,
+      answer,
+      category_id,
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// DELETE (soft)
+const deleteOption = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await chatOptionService.deleteOption(id);
+
     res.json({
       success: true,
-      data,
+      message: "Đã xoá",
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
 export default {
   getOptions,
   getAnswer,
+  createOption,
+  updateOption,
+  deleteOption,
 };
