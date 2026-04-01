@@ -23,6 +23,7 @@ import customerController from "../controllers/statistical/customerController";
 import productsImportsController from "../controllers/statistical/productsImportsController";
 import reviewsContactsController from "../controllers/statistical/reviewsContactsController";
 import messageController from "../controllers/messageController";
+import notificationController from "../controllers/notificationController";
 
 const router = express.Router();
 
@@ -352,6 +353,17 @@ const initWebRoutes = (app) => {
   router.get(
     "/api/admin/messages/:userId",
     messageController.getMessagesByUser
+  );
+
+  // --- thông báo ----
+  router.get(
+    "/api/admin/notifications/:user_id",
+    notificationController.getNotifications
+  );
+
+  router.put(
+    "/api/admin/notifications/read-all/:user_id",
+    notificationController.markAllAsRead
   );
 
   app.use("/", router);

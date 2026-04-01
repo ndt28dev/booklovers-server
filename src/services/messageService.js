@@ -1,30 +1,49 @@
 import pool from "../config/connectDB.js";
 
-// CREATE TABLE messages (
-//     id INT AUTO_INCREMENT PRIMARY KEY,
-//     user_id VARCHAR(50) NOT NULL,       -- user chat
-//     sender_type ENUM('user', 'admin') NOT NULL,
-//     message TEXT NOT NULL,
-//     is_seen BOOLEAN DEFAULT FALSE,
-//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-//   );
+const saveMessage = async (data) => {
+  const { user_id, sender_type, message } = data;
 
-export const saveMessage = async (data) => {
-  const { userId, senderType, message } = data;
-
+  // 1. Lưu message
   const [result] = await pool.query(
     `INSERT INTO messages (user_id, sender_type, message)
-       VALUES (?, ?, ?)`,
-    [userId, senderType, message]
+     VALUES (?, ?, ?)`,
+    [user_id, sender_type, message]
   );
 
+  // 2. Lấy info user
+  const [[user]] = await pool.query(
+    `SELECT fullname, avatar FROM users WHERE id = ?`,
+    [user_id]
+  );
+
+  if (sender_type === "user") {
+    // noti cho admin
+    await pool.query(
+      `INSERT INTO notifications (user_id, title, content, type)
+       VALUES (?, ?, ?, ?)`,
+      [0, "Tin nhắn mới", `${user?.fullname}: ${message}`, "message"]
+    );
+  }
+
+  if (sender_type === "admin") {
+    // noti cho user
+    await pool.query(
+      `INSERT INTO notifications (user_id, title, content, type)
+       VALUES (?, ?, ?, ?)`,
+      [user_id, "Shop phản hồi", "Bạn có tin nhắn mới từ shop", "message"]
+    );
+  }
+
+  // 4. return data cho socket
   return {
     id: result.insertId,
-    userId,
-    senderType,
+    user_id,
+    sender_type,
     message,
-    isSeen: false,
-    createdAt: new Date(),
+    is_seen: false,
+    created_at: new Date(),
+    fullname: user?.fullname || "User",
+    avatar: user?.avatar || "",
   };
 };
 
@@ -60,11 +79,17 @@ const getChatUsers = async () => {
 const getMessagesByUser = async (userId) => {
   const [rows] = await pool.query(
     `
-      SELECT *
-      FROM messages
-      WHERE user_id = ?
-      ORDER BY created_at ASC
-      `,
+    SELECT 
+      id,
+      user_id,
+      sender_type,
+      message,
+      is_seen,
+      created_at
+    FROM messages
+    WHERE user_id = ?
+    ORDER BY created_at ASC
+    `,
     [userId]
   );
 
