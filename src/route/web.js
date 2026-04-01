@@ -24,6 +24,7 @@ import productsImportsController from "../controllers/statistical/productsImport
 import reviewsContactsController from "../controllers/statistical/reviewsContactsController";
 import messageController from "../controllers/messageController";
 import notificationController from "../controllers/notificationController";
+import chatOptionController from "../controllers/chatOptionController";
 
 const router = express.Router();
 
@@ -364,6 +365,15 @@ const initWebRoutes = (app) => {
   router.put(
     "/api/admin/notifications/read-all/:user_id",
     notificationController.markAllAsRead
+  );
+
+  // ---- chat options ----
+  router.get("/api/admin/chat-options", chatOptionController.getOptions);
+
+  // lấy câu trả lời theo id
+  router.get(
+    "/api/admin/chat-options/answer/:id",
+    chatOptionController.getAnswer
   );
 
   app.use("/", router);
