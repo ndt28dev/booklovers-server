@@ -3,16 +3,20 @@ import pool from "../config/connectDB.js";
 const getAllOptions = async (page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
 
-  // lấy data
   const [rows] = await pool.query(
-    `SELECT id, question, answer, category_id
-       FROM chat_options
-       ORDER BY id DESC
+    `SELECT 
+          co.id,
+          co.question,
+          co.answer,
+          co.category_id,
+          cc.name AS category_name
+       FROM chat_options co
+       LEFT JOIN chat_categories cc ON co.category_id = cc.id
+       ORDER BY co.id DESC
        LIMIT ? OFFSET ?`,
     [Number(limit), Number(offset)]
   );
 
-  // đếm total
   const [countResult] = await pool.query(
     `SELECT COUNT(*) as total FROM chat_options`
   );
