@@ -5,7 +5,7 @@ const getAllOptions = async (page = 1, limit = 10) => {
 
   // lấy data
   const [rows] = await pool.query(
-    `SELECT id, question, answer, category
+    `SELECT id, question, answer, category_id
        FROM chat_options
        ORDER BY id DESC
        LIMIT ? OFFSET ?`,
