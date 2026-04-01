@@ -114,7 +114,32 @@ const createOrder = async (userId, orderData) => {
   const bookIds = cartItems.map((item) => item.book_id);
   await cartService.clearCartByUser(userId, bookIds);
 
-  return { orderId, orderCode };
+  return {
+    orderId,
+    orderCode,
+  };
+};
+
+const createOrderSocket = async (data) => {
+  const { userId, orderId, orderCode, fullname } = data;
+
+  const [result] = await pool.query(
+    `INSERT INTO notifications (user_id, title, content, type)
+     VALUES (?, ?, ?, ?)`,
+    [0, "Đơn hàng mới", `${fullname} vừa đặt đơn #${orderCode}`, "order"]
+  );
+
+  return {
+    notification: {
+      id: result.insertId,
+      user_id: 0,
+      title: "Đơn hàng mới",
+      content: `${fullname} vừa đặt đơn #${orderCode}`,
+      type: "order",
+      is_read: 0,
+      created_at: new Date(),
+    },
+  };
 };
 
 const getOrdersByUser = async (userId) => {
@@ -480,4 +505,5 @@ export default {
   getOrderById,
   getAllOrders,
   updateOrderStatus,
+  createOrderSocket,
 };
