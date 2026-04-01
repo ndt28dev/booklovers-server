@@ -25,6 +25,7 @@ import reviewsContactsController from "../controllers/statistical/reviewsContact
 import messageController from "../controllers/messageController";
 import notificationController from "../controllers/notificationController";
 import chatOptionController from "../controllers/chatOptionController";
+import chatCategoryController from "../controllers/chatCategoryController";
 
 const router = express.Router();
 
@@ -374,6 +375,34 @@ const initWebRoutes = (app) => {
   router.get(
     "/api/admin/chat-options/answer/:id",
     chatOptionController.getAnswer
+  );
+
+  // --- chat category
+  router.get(
+    "/api/admin/chat-categories",
+    chatCategoryController.getAllCategories
+  );
+
+  // POST create
+  router.get(
+    "/api/admin/chat-categories",
+    chatCategoryController.getAllCategories
+  );
+  router.post(
+    "/api/admin/chat-categories",
+    chatCategoryController.createCategory
+  );
+
+  // PUT update
+  router.put(
+    "/api/admin/chat-categories/:id",
+    chatCategoryController.updateCategory
+  );
+
+  // DELETE
+  router.delete(
+    "/api/admin/chat-categories/:id",
+    chatCategoryController.deleteCategory
   );
 
   app.use("/", router);

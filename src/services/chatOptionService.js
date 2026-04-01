@@ -12,6 +12,7 @@ const getAllOptions = async (page = 1, limit = 10) => {
           cc.name AS category_name
        FROM chat_options co
        LEFT JOIN chat_categories cc ON co.category_id = cc.id
+       WHERE co.is_hidden = 0
        ORDER BY co.id DESC
        LIMIT ? OFFSET ?`,
     [Number(limit), Number(offset)]
