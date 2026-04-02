@@ -9,16 +9,16 @@ const getAllPromotions = async (
   status
 ) => {
   let query = `
-    SELECT 
-      p.*,
-      CASE
-        WHEN NOW() < p.start_date THEN 'upcoming'
-        WHEN NOW() BETWEEN p.start_date AND p.end_date THEN 'active'
-        ELSE 'expired'
-      END AS computed_status
-    FROM promotion p
-    WHERE p.is_hidden = 0
-  `;
+  SELECT 
+    p.*,
+    CASE
+      WHEN CONVERT_TZ(NOW(), '+00:00', '+07:00') < p.start_date THEN 'upcoming'
+      WHEN CONVERT_TZ(NOW(), '+00:00', '+07:00') BETWEEN p.start_date AND p.end_date THEN 'active'
+      ELSE 'expired'
+    END AS computed_status
+  FROM promotion p
+  WHERE p.is_hidden = 0
+`;
 
   let countQuery = `SELECT COUNT(*) as total FROM promotion WHERE is_hidden = 0`;
 
@@ -83,8 +83,8 @@ const getPromotionByCode = async (code) => {
   await pool.query(
     `UPDATE promotion
      SET status = CASE
-       WHEN NOW() < start_date THEN 'upcoming'
-       WHEN NOW() BETWEEN start_date AND end_date THEN 'active'
+       WHEN (UTC_TIMESTAMP() + INTERVAL 7 HOUR) < start_date THEN 'upcoming'
+       WHEN (UTC_TIMESTAMP() + INTERVAL 7 HOUR) BETWEEN start_date AND end_date THEN 'active'
        ELSE 'expired'
      END
      WHERE code = ?`,
