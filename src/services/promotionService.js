@@ -115,7 +115,7 @@ const createPromotion = async (data) => {
     usage_limit,
   } = data;
 
-  const now = new Date();
+  const now = new Date(Date.now() + 7 * 60 * 60 * 1000);
 
   let status = "upcoming";
 
@@ -124,6 +124,11 @@ const createPromotion = async (data) => {
   } else if (now > new Date(end_date)) {
     status = "expired";
   }
+
+  const finalUsageLimit =
+    usage_limit === undefined || usage_limit === null || usage_limit === ""
+      ? 100000
+      : usage_limit;
 
   const [result] = await pool.query(
     `INSERT INTO promotion 
@@ -136,7 +141,7 @@ const createPromotion = async (data) => {
       discount_value,
       start_date,
       end_date,
-      usage_limit,
+      finalUsageLimit,
       status,
     ]
   );
@@ -156,7 +161,7 @@ const updatePromotion = async (data) => {
     usage_limit,
   } = data;
 
-  const now = new Date();
+  const now = new Date(Date.now() + 7 * 60 * 60 * 1000);
 
   let status = "upcoming";
 
