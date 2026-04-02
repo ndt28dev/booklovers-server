@@ -84,10 +84,54 @@ const deleteOption = async (id) => {
   );
 };
 
+const getCategoriesWithOptions = async () => {
+  const [rows] = await pool.query(`
+      SELECT 
+        cc.id AS category_id,
+        cc.name AS category_name,
+        co.id AS option_id,
+        co.question,
+        co.answer
+      FROM chat_categories cc
+      LEFT JOIN chat_options co 
+        ON cc.id = co.category_id 
+        AND co.is_hidden = 0
+      WHERE cc.is_hidden = 0
+      ORDER BY cc.id DESC, co.id DESC
+    `);
+
+  // group lại
+  const result = [];
+
+  rows.forEach((row) => {
+    let category = result.find((c) => c.id === row.category_id);
+
+    if (!category) {
+      category = {
+        id: row.category_id,
+        name: row.category_name,
+        options: [],
+      };
+      result.push(category);
+    }
+
+    if (row.option_id) {
+      category.options.push({
+        id: row.option_id,
+        question: row.question,
+        answer: row.answer,
+      });
+    }
+  });
+
+  return result;
+};
+
 export default {
   getAllOptions,
   getAnswerById,
   createOption,
   updateOption,
   deleteOption,
+  getCategoriesWithOptions,
 };

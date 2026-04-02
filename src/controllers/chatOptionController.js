@@ -101,10 +101,28 @@ const deleteOption = async (req, res) => {
   }
 };
 
+const getCategoriesWithOptions = async (req, res) => {
+  try {
+    const data = await chatOptionService.getCategoriesWithOptions();
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 export default {
   getOptions,
   getAnswer,
   createOption,
   updateOption,
   deleteOption,
+  getCategoriesWithOptions,
 };

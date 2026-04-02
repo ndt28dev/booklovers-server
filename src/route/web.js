@@ -380,6 +380,10 @@ const initWebRoutes = (app) => {
     "/api/admin/chat-options/:id",
     chatOptionController.deleteOption
   );
+  router.get(
+    "/api/admin/categories-with-options",
+    chatOptionController.getCategoriesWithOptions
+  );
 
   // --- chat category
   router.get(
