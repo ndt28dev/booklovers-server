@@ -16,6 +16,7 @@ const getAllBlogsPage = async (limit, offset, is_featured, search, status) => {
       title,
       author,
       is_featured,
+      description,
       DATE_FORMAT(date, '%Y-%m-%d') AS date,
       status,
       is_hidden,
