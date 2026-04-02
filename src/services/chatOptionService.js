@@ -97,7 +97,7 @@ const getCategoriesWithOptions = async () => {
         ON cc.id = co.category_id 
         AND co.is_hidden = 0
       WHERE cc.is_hidden = 0
-      ORDER BY cc.id DESC, co.id DESC
+      ORDER BY cc.id ASC, co.id ASC
     `);
 
   // group lại
